@@ -61,7 +61,7 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: ~/apt-cache
+          path: $HOME/apt-cache
           key: ${{ matrix.os }}-apt
           restore-keys: |
             ${{ matrix.os }}-apt
@@ -161,7 +161,7 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: ~/apt-cache
+          path: $HOME/apt-cache
           key: ${{ matrix.os }}-apt
           restore-keys: |
             ${{ matrix.os }}-apt
@@ -246,3 +246,5 @@ jobs:
         run: |
           vendor/bin/phpunit --group=migrations --bootstrap tests/bootstrap.php --configuration phpunit.xml.dist --colors=always
           vendor/bin/phpunit --exclude-group=migrations --bootstrap tests/bootstrap.php --configuration phpunit.xml.dist --colors=always
+      - name: Chmod APT Cache
+        run: sudo chmod -R 777 $HOME/apt-cache
