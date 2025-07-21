@@ -61,11 +61,15 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt
-          restore-keys: ${{ runner.os }}-apt
-      - name: Upgrade
+          path: ~/apt-cache
+          key: ${{ matrix.os }}-apt
+          restore-keys: |
+            ${{ matrix.os }}-apt
+      - name: Setup APT cache and upgrade
         run: |
+          mkdir -p ~/apt-cache
+          sudo mkdir -p /etc/apt/apt.conf.d
+          echo 'Dir::Cache::Archives "~/apt-cache";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
@@ -156,11 +160,15 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt
-          restore-keys: ${{ runner.os }}-apt
-      - name: Upgrade
+          path: ~/apt-cache
+          key: ${{ matrix.os }}-apt
+          restore-keys: |
+            ${{ matrix.os }}-apt
+      - name: Setup APT cache and upgrade
         run: |
+          mkdir -p ~/apt-cache
+          sudo mkdir -p /etc/apt/apt.conf.d
+          echo 'Dir::Cache::Archives "~/apt-cache";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
