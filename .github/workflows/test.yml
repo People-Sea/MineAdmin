@@ -61,16 +61,16 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: $HOME/apt-cache
+          path: /tmp/apt-cache
           key: ${{ matrix.os }}-apt
           restore-keys: |
             ${{ matrix.os }}-apt
       - name: Setup APT cache and upgrade
         run: |
-          mkdir -p $HOME/apt-cache/partial
-          sudo chmod -R 777 $HOME/apt-cache
+          sudo mkdir -p /tmp/apt-cache/partial
+          sudo chmod -R 777 /tmp/apt-cache
           sudo mkdir -p /etc/apt/apt.conf.d
-          echo "Dir::Cache::Archives \"$HOME/apt-cache/\";" | sudo tee /etc/apt/apt.conf.d/01cache
+          echo 'Dir::Cache::Archives "/tmp/apt-cache/";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
@@ -161,16 +161,16 @@ jobs:
       - name: Cache APT packages
         uses: actions/cache@v4
         with:
-          path: $HOME/apt-cache
+          path: /tmp/apt-cache
           key: ${{ matrix.os }}-apt
           restore-keys: |
             ${{ matrix.os }}-apt
       - name: Setup APT cache and upgrade
         run: |
-          mkdir -p $HOME/apt-cache/partial
-          sudo chmod -R 777 $HOME/apt-cache
+          sudo mkdir -p /tmp/apt-cache/partial
+          sudo chmod -R 777 /tmp/apt-cache
           sudo mkdir -p /etc/apt/apt.conf.d
-          echo "Dir::Cache::Archives \"$HOME/apt-cache/\";" | sudo tee /etc/apt/apt.conf.d/01cache
+          echo 'Dir::Cache::Archives "/tmp/apt-cache/";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
@@ -246,5 +246,3 @@ jobs:
         run: |
           vendor/bin/phpunit --group=migrations --bootstrap tests/bootstrap.php --configuration phpunit.xml.dist --colors=always
           vendor/bin/phpunit --exclude-group=migrations --bootstrap tests/bootstrap.php --configuration phpunit.xml.dist --colors=always
-      - name: Chmod APT Cache
-        run: sudo chmod -R 777 $HOME/apt-cache
