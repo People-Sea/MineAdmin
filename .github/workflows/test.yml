@@ -68,6 +68,8 @@ jobs:
       - name: Setup APT cache and upgrade
         run: |
           mkdir -p $HOME/apt-cache/partial
+          sudo chown -R _apt:_apt $HOME/apt-cache
+          sudo chmod -R 755 $HOME/apt-cache
           sudo mkdir -p /etc/apt/apt.conf.d
           echo "Dir::Cache::Archives \"$HOME/apt-cache/\";" | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
@@ -167,6 +169,8 @@ jobs:
       - name: Setup APT cache and upgrade
         run: |
           mkdir -p $HOME/apt-cache/partial
+          sudo chown -R _apt:_apt $HOME/apt-cache
+          sudo chmod -R 755 $HOME/apt-cache
           sudo mkdir -p /etc/apt/apt.conf.d
           echo "Dir::Cache::Archives \"$HOME/apt-cache/\";" | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
