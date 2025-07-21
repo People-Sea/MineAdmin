@@ -67,9 +67,9 @@ jobs:
             ${{ matrix.os }}-apt
       - name: Setup APT cache and upgrade
         run: |
-          mkdir -p ~/apt-cache
+          mkdir -p ~/apt-cache/partial
           sudo mkdir -p /etc/apt/apt.conf.d
-          echo 'Dir::Cache::Archives "~/apt-cache";' | sudo tee /etc/apt/apt.conf.d/01cache
+          echo 'Dir::Cache::Archives "~/apt-cache/";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
@@ -166,9 +166,9 @@ jobs:
             ${{ matrix.os }}-apt
       - name: Setup APT cache and upgrade
         run: |
-          mkdir -p ~/apt-cache
+          mkdir -p ~/apt-cache/partial
           sudo mkdir -p /etc/apt/apt.conf.d
-          echo 'Dir::Cache::Archives "~/apt-cache";' | sudo tee /etc/apt/apt.conf.d/01cache
+          echo 'Dir::Cache::Archives "~/apt-cache/";' | sudo tee /etc/apt/apt.conf.d/01cache
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get upgrade -f
