@@ -184,6 +184,7 @@ jobs:
           cp -f .github/ci/hyperf.php bin/hyperf.php
           cp -f .github/ci/server.php config/autoload/server.php
           cp -f .github/ci/bootstrap.php tests/bootstrap.php
+          cat composer.json
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
