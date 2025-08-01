@@ -4,4 +4,4 @@ set -e
 
 set -x
 
-COMPOSER_DEBUG_EVENTS=1 composer install -vvv
+composer install -vvv

@@ -160,7 +160,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         php-version: [ '8.3', '8.2', '8.1' ]
-        sw-version: [ 'develop' ]
+        sw-version: [ 'v1.5.3' ]
         exclude:
           - php-version: '8.3'
             sw-version: 'v5.0.3'
@@ -184,7 +184,6 @@ jobs:
           cp -f .github/ci/hyperf.php bin/hyperf.php
           cp -f .github/ci/server.php config/autoload/server.php
           cp -f .github/ci/bootstrap.php tests/bootstrap.php
-          cat composer.json
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -198,15 +197,28 @@ jobs:
           mkdir -p swow
           tar -xf swow.tar.gz -C swow --strip-components=1
           rm swow.tar.gz
+      - name: Setup APT Packages Cache
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libcurl4-openssl-dev libc-ares-dev libpq-dev
+          version: 1.0
       - name: Setup Swow
         run: |
-          sudo apt-get install libcurl4-openssl-dev libc-ares-dev libpq-dev
           cd swow/ext
           phpize
           ./configure --enable-openssl --enable-swow-curl --enable-cares --enable-swow-pgsql --enable-brotli
           make && sudo make install
           sudo sh -c "echo extension=swow > /etc/php/${{ matrix.php-version }}/cli/conf.d/swow.ini"
           php --ri swow
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "composer_cache_dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: Setup composer cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.composer_cache_dir }}
+          key: ${{ matrix.os }}-php-${{ matrix.php-version }}-swow-${{ matrix.sw-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ matrix.os }}-php-${{ matrix.php-version }}-swow-${{ matrix.sw-version }}-composer-
       - name: Setup Packages
         run: ./.github/ci/requirement.install.sh
       - name: Run PHPStan
