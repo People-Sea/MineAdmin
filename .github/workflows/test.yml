@@ -197,13 +197,9 @@ jobs:
           mkdir -p swow
           tar -xf swow.tar.gz -C swow --strip-components=1
           rm swow.tar.gz
-      - name: Setup APT Packages Cache
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: libcurl4-openssl-dev libc-ares-dev libpq-dev
-          version: 1.0
       - name: Setup Swow
         run: |
+          sudo apt-get install libcurl4-openssl-dev libc-ares-dev libpq-dev
           cd swow/ext
           phpize
           ./configure --enable-openssl --enable-swow-curl --enable-cares --enable-swow-pgsql --enable-brotli
