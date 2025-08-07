@@ -9,7 +9,7 @@ import process from 'node:process'
 // import path from 'path';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const BASE_DIR = 'tests/e2e'
+const BASE_DIR = '.'
 const OUTPUT_DIR = `${BASE_DIR}/.output`
 
 /**

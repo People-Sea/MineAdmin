@@ -4,15 +4,11 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "types": [
-      "node"
-    ]
+    "skipLibCheck": true
   },
   "include": [
     "package.json",
     "vite.config.ts",
-    "vite/**/*.ts",
-    "playwright.config.ts"
+    "vite/**/*.ts"
   ]
 }

@@ -35,6 +35,9 @@ export default async ({ mode, command }) => {
           rewrite: path => path.replace(new RegExp(`^${proxyPrefix}`), ''),
         },
       },
+      watch: {
+        ignored: ['**/tests/**'],
+      },
     },
     esbuild: {
       drop: isProduction() ? ['console', 'debugger'] : [],
