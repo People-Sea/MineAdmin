@@ -7,7 +7,7 @@ export const loginFixture = {
     username: 'admin',
     password: '12345',
   },
-  emptyCredentials: {
+  emptyVoucher: {
     username: '',
     password: '',
   },
