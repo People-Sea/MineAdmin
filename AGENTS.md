@@ -1,2 +1,21 @@
 ### 给 AGENT 的开发规范
 
+- 本项目后端是基于 `Hyperf 3.1` 的 `MineAdmin` 项目；本地后端项目地址：`/Users/peoplesea/workspace/wind_rise_new`。
+- 开始任何实现前，先阅读并理解以下文档，再动手：
+  - `docs/tencent-ads-batch-create-prd.md`
+  - `docs/tencent-ads-batch-create-tech.md`
+  - `docs/tencent-ads-batch-create-task-list.md`
+- 开发前先分析当前项目业务模型。当前业务模型不是通用后台，而是“风起”腾讯广告批量投放系统 MVP，核心结构是：`平台 -> 租户 -> 项目 -> 员工`；项目是主工作上下文，业务围绕 `管家账号`、`广告主账号`、`素材`、`模板`、`任务` 展开。
+- 开发前必须先使用 `Context7` 搜索 `Hyperf` 文档；开发具体模块功能前，也必须先用 `Context7` 搜索对应主题的 `Hyperf` 文档和相关能力说明，确认框架约定后再设计和实现。
+- 开发模块时不要凭印象写代码，要先查对应文档关键词。例如：
+  - 查询/列表/筛选：`hyperf orm`、`laravel orm`、`hyperf validation`
+  - 队列/异步任务：`hyperf async-queue`、`hyperf crontab`
+  - 数据校验/请求参数：`hyperf validation`
+  - 模型/关联/查询作用域：`hyperf orm`、`laravel orm`
+  - 权限/后台集成：先查 `MineAdmin` 文档和现有源码约定
+- 除了 `Hyperf` 文档，还必须参考 `MineAdmin` 文档和现有项目实现，避免写法偏离框架约定。
+- `MineAdmin` 文档：`https://doc.mineadmin.com`
+- `MineAdmin` 后端源码参考：`https://github.com/mineadmin/mineadmin`
+- 方案设计和实现都要尽量简单直接，不要复杂化问题，不要过度设计。
+- 本项目当前阶段默认不用写测试，除非用户明确要求。
+- 不要随意运行仓库现有测试；这些测试可能会清空数据。除非用户明确批准，否则不要执行任何测试命令。
