@@ -1,12 +1,11 @@
 <?php
 
 declare(strict_types=1);
-
 use App\Model\Permission\Menu;
 use App\Model\Permission\Meta;
 use Hyperf\Database\Seeders\Seeder;
 
-class MenuUpdate20260327PlatformTenant extends Seeder
+class menu_update_20260327_platform_tenant extends Seeder
 {
     public const BASE_DATA = [
         'path' => '',

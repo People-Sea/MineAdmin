@@ -1,11 +1,11 @@
 <?php
 
-use Hyperf\Database\Schema\Schema;
-use Hyperf\Database\Schema\Blueprint;
+declare(strict_types=1);
 use Hyperf\Database\Migrations\Migration;
+use Hyperf\Database\Schema\Blueprint;
+use Hyperf\Database\Schema\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::dropIfExists('user_position');
         Schema::dropIfExists('dept_leader');
         Schema::dropIfExists('data_permission_policy');
-        Schema::create('department', function (Blueprint $table) {
+        Schema::create('department', static function (Blueprint $table) {
             $table->comment('部门表');
             $table->bigIncrements('id');
             $table->string('name', 50)->comment('部门名称');
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->datetimes();
             $table->softDeletes();
         });
-        Schema::create('position', function (Blueprint $table) {
+        Schema::create('position', static function (Blueprint $table) {
             $table->comment('岗位表');
             $table->bigIncrements('id');
             $table->string('name', 50)->comment('岗位名称');
@@ -33,28 +33,28 @@ return new class extends Migration
             $table->datetimes();
             $table->softDeletes();
         });
-        Schema::create('user_dept', function (Blueprint $table) {
+        Schema::create('user_dept', static function (Blueprint $table) {
             $table->comment('用户-部门关联表');
             $table->bigInteger('user_id');
             $table->bigInteger('dept_id');
             $table->datetimes();
             $table->softDeletes();
         });
-        Schema::create('user_position', function (Blueprint $table) {
+        Schema::create('user_position', static function (Blueprint $table) {
             $table->comment('用户-岗位关联表');
             $table->bigInteger('user_id');
             $table->bigInteger('position_id');
             $table->datetimes();
             $table->softDeletes();
         });
-        Schema::create('dept_leader', function (Blueprint $table) {
+        Schema::create('dept_leader', static function (Blueprint $table) {
             $table->comment('部门领导表');
             $table->bigInteger('dept_id');
             $table->bigInteger('user_id');
             $table->datetimes();
             $table->softDeletes();
         });
-        Schema::create('data_permission_policy', function (Blueprint $table) {
+        Schema::create('data_permission_policy', static function (Blueprint $table) {
             $table->comment('数据权限策略');
             $table->bigIncrements('id');
             $table->bigInteger('user_id')->default(0)->comment('用户ID（与角色二选一）');

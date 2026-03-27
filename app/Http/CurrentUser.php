@@ -1,14 +1,6 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of MineAdmin.
- *
- * @link     https://www.mineadmin.com
- * @document https://doc.mineadmin.com
- * @contact  root@imoi.cn
- * @license  https://github.com/mineadmin/MineAdmin/blob/master/LICENSE
- */
 
 namespace App\Http;
 
@@ -17,8 +9,6 @@ use App\Model\Permission\User;
 use App\Service\PassportService;
 use App\Service\Permission\MenuService;
 use App\Service\Permission\UserService;
-use Hyperf\Collection\Arr;
-use Hyperf\Collection\Collection;
 use Hyperf\Context\Context;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Mine\Jwt\Traits\RequestScopedTokenTrait;

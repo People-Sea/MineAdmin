@@ -1,20 +1,12 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of MineAdmin.
- *
- * @link     https://www.mineadmin.com
- * @document https://doc.mineadmin.com
- * @contact  root@imoi.cn
- * @license  https://github.com/mineadmin/MineAdmin/blob/master/LICENSE
- */
 use App\Model\Permission\Menu;
 use App\Model\Permission\Meta;
 use Hyperf\Database\Seeders\Seeder;
 use Hyperf\DbConnection\Db;
 
-class MenuSeeder20240926 extends Seeder
+class menu_seeder_20240926 extends Seeder
 {
     public const BASE_DATA = [
         'name' => '',

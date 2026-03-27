@@ -1,14 +1,5 @@
 <?php
 
-$header = <<<'EOF'
-This file is part of MineAdmin.
-
-@link     https://www.mineadmin.com
-@document https://doc.mineadmin.com
-@contact  root@imoi.cn
-@license  https://github.com/mineadmin/MineAdmin/blob/master/LICENSE
-EOF;
-
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setParallelConfig(new PhpCsFixer\Runner\Parallel\ParallelConfig(8, 24))
@@ -23,10 +14,9 @@ return (new PhpCsFixer\Config())
         '@PhpCsFixer' => true,
         '@PHP81Migration' => true,
         'header_comment' => [
-            'comment_type' => 'PHPDoc',
-            'header' => $header,
-            'separate' => 'none',
+            'header' => '',
             'location' => 'after_declare_strict',
+            'separate' => 'none',
         ],
         'array_syntax' => [
             'syntax' => 'short'

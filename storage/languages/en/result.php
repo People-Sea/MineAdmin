@@ -1,14 +1,6 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of MineAdmin.
- *
- * @link     https://www.mineadmin.com
- * @document https://doc.mineadmin.com
- * @contact  root@imoi.cn
- * @license  https://github.com/mineadmin/MineAdmin/blob/master/LICENSE
- */
 return [
     'success' => 'Success',
     'fail' => 'Fail',
@@ -18,5 +10,5 @@ return [
     'method_not_allowed' => 'Method Not Allowed',
     'not_acceptable' => 'Not Acceptable',
     'conflict' => 'Request parameter error',
-    'disabled' => 'Account disabled'
+    'disabled' => 'Account disabled',
 ];
