@@ -40,6 +40,7 @@ final class CurrentUser
         if ($user === null) {
             throw new BusinessException(ResultCode::UNAUTHORIZED, trans('jwt.unauthorized'));
         }
+        $this->ensureTenantAccessible($user);
 
         Context::set('current_user', $user);
         return $user;
@@ -124,5 +125,17 @@ final class CurrentUser
         }
         unset($menu);
         return $tree;
+    }
+
+    private function ensureTenantAccessible(User $user): void
+    {
+        if (! $user->isTenantUser() || ! $user->tenant_id) {
+            return;
+        }
+
+        $status = $user->tenant()->value('status');
+        if ((int) $status !== Status::Normal->value) {
+            throw new BusinessException(ResultCode::DISABLED, '所属租户已停用');
+        }
     }
 }

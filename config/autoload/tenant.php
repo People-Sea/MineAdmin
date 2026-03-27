@@ -7,6 +7,8 @@ use App\Http\Admin\Controller\Logstash\UserLoginLogController;
 use App\Http\Admin\Controller\Logstash\UserOperationLogController;
 use App\Http\Admin\Controller\PassportController;
 use App\Http\Admin\Controller\PermissionController;
+use App\Http\Admin\Controller\Tenant\TenantMemberController;
+use App\Http\Admin\Controller\Tenant\TenantProjectController;
 
 return [
     'assignable_role_codes' => [
@@ -20,10 +22,10 @@ return [
         AttachmentController::class,
         UserLoginLogController::class,
         UserOperationLogController::class,
+        TenantMemberController::class,
+        TenantProjectController::class,
     ],
-    'allowed_controller_prefixes' => [
-        'App\\Http\\Admin\\Controller\\Tenant\\',
-    ],
+    'allowed_controller_prefixes' => [],
     'allowed_menu_names' => [
         'config',
         'log',

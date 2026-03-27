@@ -31,6 +31,12 @@ const useTenantWorkspaceStore = defineStore(
     }
 
     function restore() {
+      if (isTenantMode.value) {
+        currentTenantId.value = undefined
+        currentProjectId.value = undefined
+        return
+      }
+
       const raw = localStorage.getItem(getStorageKey())
       if (!raw) {
         return
@@ -85,13 +91,20 @@ const useTenantWorkspaceStore = defineStore(
 
       projectOptionsList.value = res.data ?? []
 
-      if (!projectOptionsList.value.some(item => item.id === currentProjectId.value)) {
-        const lastProjectId = isTenantMode.value
-          ? userStore.getUserInfo()?.last_project_id
-          : undefined
-        currentProjectId.value = projectOptionsList.value.find(item => item.id === lastProjectId)?.id
+      const lastProjectId = userStore.getUserInfo()?.last_project_id
+      const normalizedLastProjectId = lastProjectId ?? undefined
+
+      if (isTenantMode.value) {
+        currentProjectId.value = projectOptionsList.value.find(item => item.id === normalizedLastProjectId)?.id
           ?? projectOptionsList.value.find(item => item.is_default === 1)?.id
           ?? projectOptionsList.value[0]?.id
+
+        if (currentProjectId.value !== normalizedLastProjectId) {
+          await userStore.setLastProjectId(currentProjectId.value, true)
+        }
+      }
+      else if (!projectOptionsList.value.some(item => item.id === currentProjectId.value)) {
+        currentProjectId.value = projectOptionsList.value[0]?.id
       }
 
       persist()
@@ -130,11 +143,12 @@ const useTenantWorkspaceStore = defineStore(
       await loadProjects(tenantId)
     }
 
-    function changeProject(projectId?: number) {
-      currentProjectId.value = projectId
+    async function changeProject(projectId?: number) {
+      const nextProjectId = projectId ?? undefined
       if (isTenantMode.value) {
-        userStore.setLastProjectId(projectId)
+        await userStore.setLastProjectId(nextProjectId, true)
       }
+      currentProjectId.value = nextProjectId
       persist()
     }
 

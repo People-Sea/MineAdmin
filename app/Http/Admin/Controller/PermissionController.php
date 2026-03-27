@@ -98,6 +98,13 @@ final class PermissionController extends AbstractController
             }
             $data['password'] = $data['new_password'];
         }
+        if (Arr::exists($data, 'last_project_id')) {
+            $this->userService->switchProject($user, Arr::get($data, 'last_project_id'));
+            unset($data['last_project_id']);
+        }
+        if ($data === []) {
+            return $this->success();
+        }
         $this->userService->updateById($user->id, $data);
         return $this->success();
     }

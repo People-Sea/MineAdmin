@@ -33,15 +33,6 @@ const rootRoutes: RouteRecordRaw[] = [
     },
   },
   {
-    name: 'tenantLogin',
-    path: '/tenant/login',
-    redirect: '/login',
-    meta: {
-      title: '租户登录',
-      hidden: true,
-    },
-  },
-  {
     path: '/:pathMatch(.*)*',
     name: 'MineSystemError',
     component: () => import(('@/layouts/[...all].tsx')),

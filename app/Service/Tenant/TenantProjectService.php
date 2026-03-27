@@ -12,6 +12,7 @@ use App\Model\Permission\User;
 use App\Model\TenantProject;
 use App\Repository\Tenant\TenantProjectRepository;
 use App\Service\IService;
+use App\Service\Permission\UserService;
 use Hyperf\Collection\Collection;
 use Hyperf\DbConnection\Db;
 
@@ -22,7 +23,8 @@ final class TenantProjectService extends IService
 {
     public function __construct(
         protected readonly TenantProjectRepository $repository,
-        private readonly CurrentUser $currentUser
+        private readonly CurrentUser $currentUser,
+        private readonly UserService $userService
     ) {}
 
     public function page(array $params, int $page = 1, int $pageSize = 10): array
@@ -98,7 +100,10 @@ final class TenantProjectService extends IService
                     ->where('user_type', Type::USER)
                     ->where('tenant_id', $project->tenant_id)
                     ->where('last_project_id', $project->id)
-                    ->update(['last_project_id' => $this->resolveFallbackProjectId($project)]);
+                    ->get()
+                    ->each(function (User $member) use ($project) {
+                        $this->userService->syncLastProjectId($member, $project->id);
+                    });
                 $project->delete();
             });
 
@@ -108,8 +113,14 @@ final class TenantProjectService extends IService
 
     private function syncMembers(TenantProject $project, array $memberIds, int $operatorId): void
     {
+        $existingMemberIds = $project->members()
+            ->pluck('id')
+            ->map(static fn ($memberId) => (int) $memberId)
+            ->all();
+
         if ($memberIds === []) {
             $project->members()->sync([]);
+            $this->syncImpactedMembers(array_map('intval', $existingMemberIds), $project->id);
             return;
         }
 
@@ -135,6 +146,7 @@ final class TenantProjectService extends IService
         }
 
         $project->members()->sync($syncData);
+        $this->syncImpactedMembers(array_unique(array_merge($existingMemberIds, $validIds)));
     }
 
     private function applyScope(array $params): array
@@ -182,14 +194,21 @@ final class TenantProjectService extends IService
         return $project;
     }
 
-    private function resolveFallbackProjectId(TenantProject $project): int|null
+    /**
+     * @param int[] $memberIds
+     */
+    private function syncImpactedMembers(array $memberIds, ?int $excludeProjectId = null): void
     {
-        /** @var null|TenantProject $defaultProject */
-        $defaultProject = TenantProject::query()
-            ->where('tenant_id', $project->tenant_id)
-            ->where('is_default', 1)
-            ->first();
+        if ($memberIds === []) {
+            return;
+        }
 
-        return $defaultProject?->id;
+        User::query()
+            ->where('user_type', Type::USER)
+            ->whereIn('id', $memberIds)
+            ->get()
+            ->each(function (User $member) use ($excludeProjectId) {
+                $this->userService->syncLastProjectId($member, $excludeProjectId);
+            });
     }
 }

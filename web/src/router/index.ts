@@ -27,16 +27,13 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const settingStore = useSettingStore()
   const userStore = useUserStore()
-  const whiteRoutes = new Set([
-    ...(settingStore.getSettings('app').whiteRoute ?? []),
-    'tenantLogin',
-  ])
+  const whiteRoutes = new Set(settingStore.getSettings('app').whiteRoute ?? [])
 
   isLoading.value = true
   if (userStore.isLogin) {
     if (userStore.getUserInfo() === null) {
       await userStore.requestUserInfo()
-      if (to.name === 'login' || to.name === 'tenantLogin') {
+      if (to.name === 'login') {
         next({
           path: userStore.getHomePath(),
           replace: true,
@@ -47,7 +44,7 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    if (to.name === 'login' || to.name === 'tenantLogin') {
+    if (to.name === 'login') {
       next({
         path: userStore.getHomePath(),
         replace: true,

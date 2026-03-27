@@ -13,6 +13,7 @@ use App\Model\Permission\User;
 use App\Model\TenantProject;
 use App\Repository\Tenant\TenantMemberRepository;
 use App\Service\IService;
+use App\Service\Permission\UserService;
 use Hyperf\Collection\Collection;
 use Hyperf\Collection\Enumerable;
 use Hyperf\DbConnection\Db;
@@ -24,7 +25,8 @@ final class TenantMemberService extends IService
 {
     public function __construct(
         protected readonly TenantMemberRepository $repository,
-        private readonly CurrentUser $currentUser
+        private readonly CurrentUser $currentUser,
+        private readonly UserService $userService
     ) {}
 
     public function page(array $params, int $page = 1, int $pageSize = 10): array
@@ -82,6 +84,7 @@ final class TenantMemberService extends IService
             $member = parent::create($data);
             $this->syncRole($member, $roleId);
             $this->syncProjects($member, \is_array($projectIds) ? $projectIds : null, (int) ($data['updated_by'] ?? $data['created_by'] ?? 0));
+            $this->userService->syncLastProjectId($member);
 
             return $member;
         });
@@ -120,6 +123,7 @@ final class TenantMemberService extends IService
                 $this->syncRole($member, $roleId);
             }
             $this->syncProjects($member, \is_array($projectIds) ? $projectIds : null, (int) ($data['updated_by'] ?? $data['created_by'] ?? 0));
+            $this->userService->syncLastProjectId($member);
             return $member;
         });
     }

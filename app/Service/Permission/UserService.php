@@ -8,14 +8,15 @@ use App\Exception\BusinessException;
 use App\Http\Common\ResultCode;
 use App\Library\DataPermission\Attribute\DataScope;
 use App\Library\DataPermission\ScopeType;
+use App\Model\Enums\User\Status;
 use App\Model\Permission\Role;
 use App\Model\Permission\User;
+use App\Model\TenantProject;
 use App\Repository\Permission\RoleRepository;
 use App\Repository\Permission\UserRepository;
 use App\Service\IService;
 use Hyperf\Collection\Collection;
 use Hyperf\DbConnection\Db;
-use Psr\SimpleCache\CacheInterface;
 
 /**
  * @extends IService<User>
@@ -24,18 +25,12 @@ final class UserService extends IService
 {
     public function __construct(
         protected readonly UserRepository $repository,
-        protected readonly RoleRepository $roleRepository,
-        protected readonly CacheInterface $cache
+        protected readonly RoleRepository $roleRepository
     ) {}
 
     public function getInfo(int $id): ?User
     {
-        if ($this->cache->has((string) $id)) {
-            return $this->cache->get((string) $id);
-        }
-        $user = $this->repository->findById((string) $id);
-        $this->cache->set((string) $id, $user, 60);
-        return $user;
+        return $this->repository->findById((string) $id);
     }
 
     public function resetPassword(?int $id): bool
@@ -90,6 +85,36 @@ final class UserService extends IService
         });
     }
 
+    public function switchProject(User $user, ?int $projectId): void
+    {
+        if (! $user->isTenantUser()) {
+            throw new BusinessException(ResultCode::FORBIDDEN);
+        }
+
+        $projectId = $projectId !== null ? (int) $projectId : null;
+        if ($projectId !== null && ! $this->projectAccessible($user, $projectId)) {
+            throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '当前项目不存在、已停用或无权访问');
+        }
+
+        $user->last_project_id = $projectId;
+        $user->save();
+    }
+
+    public function syncLastProjectId(User $user, ?int $excludeProjectId = null): void
+    {
+        if (! $user->isTenantUser()) {
+            return;
+        }
+
+        $currentProjectId = $user->last_project_id ? (int) $user->last_project_id : null;
+        if ($currentProjectId !== null && $this->projectAccessible($user, $currentProjectId, $excludeProjectId)) {
+            return;
+        }
+
+        $user->last_project_id = $this->resolveAccessibleProjectId($user, $excludeProjectId);
+        $user->save();
+    }
+
     #[DataScope(
         scopeType: ScopeType::CREATED_BY,
         onlyTables: ['user'],
@@ -122,5 +147,47 @@ final class UserService extends IService
                 }
             }
         }
+    }
+
+    private function projectAccessible(User $user, int $projectId, ?int $excludeProjectId = null): bool
+    {
+        if ($excludeProjectId !== null && $projectId === $excludeProjectId) {
+            return false;
+        }
+
+        $query = TenantProject::query()
+            ->whereKey($projectId)
+            ->where('tenant_id', $user->tenant_id)
+            ->where('status', Status::Normal->value);
+
+        if (! $user->isTenantAdmin()) {
+            $query->whereHas('members', static function ($query) use ($user) {
+                $query->whereKey($user->id);
+            });
+        }
+
+        return $query->exists();
+    }
+
+    private function resolveAccessibleProjectId(User $user, ?int $excludeProjectId = null): ?int
+    {
+        $query = TenantProject::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->where('status', Status::Normal->value)
+            ->orderByDesc('is_default')
+            ->orderByDesc('id');
+
+        if ($excludeProjectId !== null) {
+            $query->where('id', '!=', $excludeProjectId);
+        }
+
+        if (! $user->isTenantAdmin()) {
+            $query->whereHas('members', static function ($query) use ($user) {
+                $query->whereKey($user->id);
+            });
+        }
+
+        $projectId = $query->value('id');
+        return $projectId !== null ? (int) $projectId : null;
     }
 }

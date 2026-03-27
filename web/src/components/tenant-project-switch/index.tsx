@@ -1,9 +1,11 @@
 import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
+import { useMessage } from '@/hooks/useMessage.ts'
 
 export default defineComponent({
   name: 'TenantProjectSwitch',
   setup() {
     const workspaceStore = useTenantWorkspaceStore()
+    const msg = useMessage()
     const loading = ref(false)
 
     onMounted(async () => {
@@ -26,7 +28,18 @@ export default defineComponent({
           loading={loading.value}
           class="!w-[220px]"
           disabled={!workspaceStore.currentTenantId || workspaceStore.projectOptions.length === 0}
-          onUpdate:modelValue={(value: number) => workspaceStore.changeProject(value)}
+          onUpdate:modelValue={async (value: number) => {
+            loading.value = true
+            try {
+              await workspaceStore.changeProject(value)
+            }
+            catch (error) {
+              msg.alertError(error instanceof Error ? error.message : String(error))
+            }
+            finally {
+              loading.value = false
+            }
+          }}
         >
           {workspaceStore.projectOptions.map(item => (
             <el-option

@@ -47,8 +47,8 @@ function getInfo(): Promise<ResponseStruct<UserInfo>> {
   return useHttp().get('/admin/passport/getInfo')
 }
 
-function logoutApi(): Promise<ResponseStruct<null>> {
-  return useHttp().post('/admin/passport/logout')
+function updateCurrentProjectApi(last_project_id?: number): Promise<ResponseStruct<null>> {
+  return useHttp().post('/admin/permission/update', { last_project_id: last_project_id ?? null })
 }
 
 /**
@@ -180,13 +180,16 @@ const useUserStore = defineStore(
       await router.push({
         name: 'login',
         query: {
-          ...(!['login', 'tenantLogin'].includes(String(router.currentRoute.value.name)) && { redirect }),
+          ...(String(router.currentRoute.value.name) !== 'login' && { redirect }),
         },
       })
     }
 
     function setLanguage(langName: string) {
-      if (!langName || typeof langName !== 'string' || !langName.trim()) return false
+      if (!langName || typeof langName !== 'string' || !langName.trim()) {
+        return false
+      }
+
       language.value = langName.trim()
       cache.set('language', language.value)
       return true
@@ -214,7 +217,10 @@ const useUserStore = defineStore(
       return true
     }
 
-    function setLastProjectId(projectId?: number): void {
+    async function setLastProjectId(projectId?: number, syncServer = false): Promise<void> {
+      if (syncServer) {
+        await updateCurrentProjectApi(projectId)
+      }
       if (userInfo.value) {
         userInfo.value.last_project_id = projectId
       }

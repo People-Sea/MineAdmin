@@ -38,21 +38,4 @@ return [
     'application' => [
         // jwt 配置 https://lcobucci-jwt.readthedocs.io/en/latest/
     ],
-    'tenant' => [
-        'driver' => Jwt::class,
-        'key' => InMemory::plainText(hash('sha256', (string) env('JWT_SECRET') . ':tenant')),
-        'alg' => new Sha256(),
-        'ttl' => (int) env('JWT_TTL', 3600),
-        'refresh_ttl' => (int) env('JWT_REFRESH_TTL', 7200),
-        'blacklist' => [
-            'enable' => true,
-            'prefix' => 'jwt_blacklist_tenant',
-            'connection' => 'default',
-            'ttl' => (int) env('JWT_BLACKLIST_TTL', 7201),
-        ],
-        'claims' => [
-            RegisteredClaims::ISSUER => (string) env('APP_NAME'),
-            'guard' => 'tenant',
-        ],
-    ],
 ];

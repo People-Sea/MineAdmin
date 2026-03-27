@@ -8,6 +8,8 @@ use App\Exception\BusinessException;
 use App\Exception\JwtInBlackException;
 use App\Http\Common\ResultCode;
 use App\Model\Enums\User\Type;
+use App\Model\Enums\User\Status;
+use App\Model\Permission\User;
 use App\Repository\Permission\UserRepository;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Lcobucci\JWT\UnencryptedToken;
@@ -49,6 +51,7 @@ final class PassportService extends IService implements CheckTokenInterface
         if ($user->status->isDisable()) {
             throw new BusinessException(ResultCode::DISABLED);
         }
+        $this->ensureTenantAccessible($user);
         $this->dispatcher->dispatch(new UserLoginEvent($user, $ip, $os, $browser));
         $jwt = $this->getJwt();
         return [
@@ -86,5 +89,17 @@ final class PassportService extends IService implements CheckTokenInterface
                 'expire_at' => (int) $jwt->getConfig('ttl', 0),
             ];
         }, $this->getJwt());
+    }
+
+    private function ensureTenantAccessible(User $user): void
+    {
+        if (! $user->isTenantUser() || ! $user->tenant_id) {
+            return;
+        }
+
+        $status = $user->tenant()->value('status');
+        if ((int) $status !== Status::Normal->value) {
+            throw new BusinessException(ResultCode::DISABLED, '所属租户已停用');
+        }
     }
 }
