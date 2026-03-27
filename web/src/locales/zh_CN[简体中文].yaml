@@ -107,7 +107,7 @@ mineAdmin:
     has: 此标签页已收藏过
     noFavorite: 还没有收藏任何标签页
     close: 关闭标签页
-  slogan: 一款开箱即用的后台管理系统
+  slogan: 面向团队协作的批量广告投放系统
   toolbars:
     notification: 通知
     settings: 设置
@@ -116,7 +116,7 @@ mineAdmin:
     sorts: 工具栏排序
     switchMode: 切换颜色模式
     translate: 国际化
-  mark: 开箱即用
+  mark: 批量投放
 menu:
   uc:index: 首页
   dashboard:analysis: 分析页

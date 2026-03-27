@@ -22,6 +22,15 @@ final class UserSchema implements \JsonSerializable
     #[Property(property: 'user_type', title: '用户类型：(100系统用户)', type: 'string')]
     public ?Type $userType;
 
+    #[Property(property: 'tenant_id', title: '所属租户ID', type: 'int')]
+    public ?int $tenantId;
+
+    #[Property(property: 'tenant_name', title: '所属租户名称', type: 'string')]
+    public ?string $tenantName;
+
+    #[Property(property: 'last_project_id', title: '最近使用项目ID', type: 'int')]
+    public ?int $lastProjectId;
+
     #[Property(property: 'nickname', title: '用户昵称', type: 'string')]
     public ?string $nickname;
 
@@ -72,6 +81,9 @@ final class UserSchema implements \JsonSerializable
         $this->id = $model->id;
         $this->username = $model->username;
         $this->userType = $model->user_type;
+        $this->tenantId = $model->tenant_id;
+        $this->tenantName = $model->tenant?->name ?? null;
+        $this->lastProjectId = $model->last_project_id;
         $this->nickname = $model->nickname;
         $this->phone = $model->phone;
         $this->email = $model->email;
@@ -91,6 +103,6 @@ final class UserSchema implements \JsonSerializable
 
     public function jsonSerialize(): mixed
     {
-        return ['id' => $this->id, 'username' => $this->username, 'user_type' => $this->userType, 'nickname' => $this->nickname, 'phone' => $this->phone, 'email' => $this->email, 'avatar' => $this->avatar, 'signed' => $this->signed, 'status' => $this->status, 'login_ip' => $this->loginIp, 'login_time' => $this->loginTime, 'backend_setting' => $this->backendSetting, 'created_by' => $this->createdBy, 'updated_by' => $this->updatedBy, 'created_at' => $this->createdAt, 'updated_at' => $this->updatedAt, 'remark' => $this->remark];
+        return ['id' => $this->id, 'username' => $this->username, 'user_type' => $this->userType, 'tenant_id' => $this->tenantId, 'tenant_name' => $this->tenantName, 'last_project_id' => $this->lastProjectId, 'nickname' => $this->nickname, 'phone' => $this->phone, 'email' => $this->email, 'avatar' => $this->avatar, 'signed' => $this->signed, 'status' => $this->status, 'login_ip' => $this->loginIp, 'login_time' => $this->loginTime, 'backend_setting' => $this->backendSetting, 'created_by' => $this->createdBy, 'updated_by' => $this->updatedBy, 'created_at' => $this->createdAt, 'updated_at' => $this->updatedAt, 'remark' => $this->remark];
     }
 }

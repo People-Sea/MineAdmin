@@ -56,6 +56,20 @@ final class TenantController extends AbstractController
         );
     }
 
+    #[Get(
+        path: '/admin/tenant/options',
+        operationId: 'tenantOptions',
+        summary: '租户选项列表',
+        security: [['Bearer' => [], 'ApiKey' => []]],
+        tags: ['租户管理'],
+    )]
+    #[Permission(code: 'platform:tenant:index')]
+    #[ResultResponse(instance: new Result())]
+    public function options(): Result
+    {
+        return $this->success($this->service->options());
+    }
+
     #[Post(
         path: '/admin/tenant',
         operationId: 'tenantCreate',
@@ -70,6 +84,7 @@ final class TenantController extends AbstractController
     {
         $this->service->create(array_merge($request->validated(), [
             'created_by' => $this->currentUser->id(),
+            'updated_by' => $this->currentUser->id(),
         ]));
         return $this->success();
     }

@@ -107,7 +107,7 @@ mineAdmin:
     has: This tab has already been bookmarked
     noFavorite: haven't collected any tab yet
     close: Close tab
-  slogan: An out of the box backend management system
+  slogan: A collaborative bulk advertising workspace
   toolbars:
     notification: Notification
     settings: Settings
@@ -116,7 +116,7 @@ mineAdmin:
     sorts: Toolbar sorting
     switchMode: Toggle the color mode
     translate: International
-  mark: out of the box
+  mark: Bulk Ads
 menu:
   uc:index: Home
   dashboard:analysis: Analysis Page

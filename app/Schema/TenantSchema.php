@@ -30,6 +30,12 @@ final class TenantSchema implements \JsonSerializable
     #[Property(property: 'status', title: '状态 (1正常 2停用)', type: 'int')]
     public ?int $status;
 
+    #[Property(property: 'member_count', title: '成员数量', type: 'int')]
+    public ?int $memberCount;
+
+    #[Property(property: 'project_count', title: '项目数量', type: 'int')]
+    public ?int $projectCount;
+
     #[Property(property: 'created_by', title: '创建者', type: 'int')]
     public ?int $createdBy;
 
@@ -53,6 +59,8 @@ final class TenantSchema implements \JsonSerializable
         $this->contactName = $model->contact_name;
         $this->contactPhone = $model->contact_phone;
         $this->status = $model->status;
+        $this->memberCount = (int) ($model->member_count ?? 0);
+        $this->projectCount = (int) ($model->project_count ?? 0);
         $this->createdBy = $model->created_by;
         $this->updatedBy = $model->updated_by;
         $this->createdAt = $model->created_at;
@@ -69,6 +77,8 @@ final class TenantSchema implements \JsonSerializable
             'contact_name' => $this->contactName,
             'contact_phone' => $this->contactPhone,
             'status' => $this->status,
+            'member_count' => $this->memberCount,
+            'project_count' => $this->projectCount,
             'created_by' => $this->createdBy,
             'updated_by' => $this->updatedBy,
             'created_at' => $this->createdAt,

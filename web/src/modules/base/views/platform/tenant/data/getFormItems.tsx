@@ -8,13 +8,18 @@ export default function getFormItems(formType: 'add' | 'edit' = 'add', t: any, m
     code: '租户编码',
     contactName: '联系人',
     contactPhone: '联系电话',
+    adminName: '租户管理员姓名',
+    adminUsername: '租户管理员账号',
+    adminEmail: '租户管理员邮箱',
+    adminPhone: '租户管理员电话',
+    adminPassword: '租户管理员密码',
   }
 
   if (formType === 'add') {
     model.status = 1
   }
 
-  return [
+  const items: MaFormItem[] = [
     {
       label: () => labels.name,
       prop: 'name',
@@ -55,6 +60,70 @@ export default function getFormItems(formType: 'add' | 'edit' = 'add', t: any, m
         placeholder: t('form.pleaseInput', { msg: labels.contactPhone }),
       },
     },
+  ]
+
+  if (formType === 'add') {
+    items.push(
+      {
+        label: () => labels.adminName,
+        prop: 'admin_name',
+        render: 'input',
+        cols: { md: 12, xs: 24 },
+        renderProps: {
+          placeholder: t('form.pleaseInput', { msg: labels.adminName }),
+        },
+        itemProps: {
+          rules: [{ required: true, message: t('form.requiredInput', { msg: labels.adminName }) }],
+        },
+      },
+      {
+        label: () => labels.adminUsername,
+        prop: 'admin_username',
+        render: 'input',
+        cols: { md: 12, xs: 24 },
+        renderProps: {
+          placeholder: t('form.pleaseInput', { msg: labels.adminUsername }),
+        },
+        itemProps: {
+          rules: [{ required: true, message: t('form.requiredInput', { msg: labels.adminUsername }) }],
+        },
+      },
+      {
+        label: () => labels.adminEmail,
+        prop: 'admin_email',
+        render: 'input',
+        cols: { md: 12, xs: 24 },
+        renderProps: {
+          placeholder: t('form.pleaseInput', { msg: labels.adminEmail }),
+        },
+      },
+      {
+        label: () => labels.adminPhone,
+        prop: 'admin_phone',
+        render: 'input',
+        cols: { md: 12, xs: 24 },
+        renderProps: {
+          placeholder: t('form.pleaseInput', { msg: labels.adminPhone }),
+        },
+      },
+      {
+        label: () => labels.adminPassword,
+        prop: 'admin_password',
+        render: 'input',
+        cols: { md: 12, xs: 24 },
+        renderProps: {
+          placeholder: t('form.pleaseInput', { msg: labels.adminPassword }),
+          type: 'password',
+          showPassword: true,
+        },
+        itemProps: {
+          rules: [{ required: true, message: t('form.requiredInput', { msg: labels.adminPassword }) }],
+        },
+      },
+    )
+  }
+
+  items.push(
     {
       label: () => t('crud.status'),
       prop: 'status',
@@ -73,5 +142,7 @@ export default function getFormItems(formType: 'add' | 'edit' = 'add', t: any, m
         type: 'textarea',
       },
     },
-  ]
+  )
+
+  return items
 }

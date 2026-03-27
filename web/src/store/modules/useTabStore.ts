@@ -11,6 +11,7 @@ import { useNProgress } from '@vueuse/integrations/useNProgress'
 import { useSorted } from '@vueuse/core'
 import type { MineRoute, MineTabbar, SystemSettings } from '#/global'
 import useCache from '@/hooks/useCache.ts'
+import { getAuthHomePage } from '@/utils/homePage.ts'
 
 const useTabStore = defineStore(
   'useTabStore',
@@ -21,23 +22,29 @@ const useTabStore = defineStore(
     const settingStore = useSettingStore()
     const keepAliveStore = useKeepAliveStore()
     const iframeKeepLiveStore = useIframeKeepAliveStore()
-    const welcomePage = settingStore.getSettings('welcomePage') as SystemSettings.welcomePage
     const tabList = ref<MineTabbar[]>([])
     const { isLoading } = useNProgress()
-    const defaultTab = ref<MineTabbar>({
-      name: welcomePage.name,
-      path: welcomePage.path,
-      fullPath: welcomePage.path,
-      i18n: 'menu.welcome',
-      icon: welcomePage.icon,
-      title: welcomePage.title,
-      affix: true,
-    } as MineTabbar)
+
+    function buildDefaultTab(): MineTabbar {
+      const welcomePage = getAuthHomePage() as SystemSettings.welcomePage
+
+      return {
+        name: welcomePage.name,
+        path: welcomePage.path,
+        fullPath: welcomePage.path,
+        i18n: useUserStore().isTenantUser() ? undefined : 'menu.welcome',
+        icon: welcomePage.icon,
+        title: welcomePage.title,
+        affix: true,
+      } as MineTabbar
+    }
+
+    const defaultTab = computed<MineTabbar>(() => buildDefaultTab())
 
     function initTab() {
       tabList.value = get('tabList', [])
       if (tabList.value?.length === 0) {
-        addTab(defaultTab.value)
+        addTab(buildDefaultTab())
 
         const temp = router.getRoutes().filter(item => keepAliveStore.list.includes(item.name as string)) as MineRoute.routeRecord[]
         temp?.map((item: any) => {
@@ -221,7 +228,7 @@ const useTabStore = defineStore(
     }
 
     function clearTab() {
-      tabList.value = [defaultTab.value]
+      tabList.value = [buildDefaultTab()]
       keepAliveStore.clean()
       iframeKeepLiveStore.clean()
     }

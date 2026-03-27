@@ -18,13 +18,21 @@ final class UserRepository extends IRepository
 {
     public function __construct(protected readonly User $model) {}
 
-    public function findByUnameType(string $username, Type $userType = Type::SYSTEM): User
+    public function findByUnameType(string $username, Type $userType = Type::SYSTEM): ?User
     {
         // @phpstan-ignore-next-line
         return $this->model->newQuery()
             ->where('username', $username)
             ->where('user_type', $userType)
-            ->firstOrFail();
+            ->first();
+    }
+
+    public function findByUsername(string $username): ?User
+    {
+        // @phpstan-ignore-next-line
+        return $this->model->newQuery()
+            ->where('username', $username)
+            ->first();
     }
 
     public function handleSearch(Builder $query, array $params): Builder

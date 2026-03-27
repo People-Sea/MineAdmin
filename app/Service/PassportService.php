@@ -33,9 +33,15 @@ final class PassportService extends IService implements CheckTokenInterface
     /**
      * @return array<string,int|string>
      */
-    public function login(string $username, string $password, Type $userType = Type::SYSTEM, string $ip = '0.0.0.0', string $browser = 'unknown', string $os = 'unknown'): array
+    public function login(string $username, string $password, Type|null $userType = null, string $ip = '0.0.0.0', string $browser = 'unknown', string $os = 'unknown'): array
     {
-        $user = $this->repository->findByUnameType($username, $userType);
+        $user = $userType === null
+            ? $this->repository->findByUsername($username)
+            : $this->repository->findByUnameType($username, $userType);
+
+        if ($user === null) {
+            throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, trans('auth.password_error'));
+        }
         if (! $user->verifyPassword($password)) {
             $this->dispatcher->dispatch(new UserLoginEvent($user, $ip, $os, $browser, false));
             throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, trans('auth.password_error'));

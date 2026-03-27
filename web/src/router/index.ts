@@ -27,24 +27,37 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const settingStore = useSettingStore()
   const userStore = useUserStore()
+  const whiteRoutes = new Set([
+    ...(settingStore.getSettings('app').whiteRoute ?? []),
+    'tenantLogin',
+  ])
+
   isLoading.value = true
   if (userStore.isLogin) {
-    if (to.name === 'login') {
-      next({
-        path: settingStore.getSettings('welcomePage').path,
-        replace: true,
-      })
-    }
     if (userStore.getUserInfo() === null) {
       await userStore.requestUserInfo()
+      if (to.name === 'login' || to.name === 'tenantLogin') {
+        next({
+          path: userStore.getHomePath(),
+          replace: true,
+        })
+        return
+      }
       next({ path: to.fullPath, query: to.query })
+      return
     }
-    else {
-      next()
+
+    if (to.name === 'login' || to.name === 'tenantLogin') {
+      next({
+        path: userStore.getHomePath(),
+        replace: true,
+      })
+      return
     }
+    next()
   }
   else {
-    settingStore.getSettings('app').whiteRoute.includes(to.name as string)
+    whiteRoutes.has(to.name as string)
       ? next()
       : next({ name: 'login', query: { redirect: to.fullPath } })
   }
@@ -81,7 +94,9 @@ router.afterEach(async (to) => {
   }
 
   if (to.meta.type === 'I') {
-    iframeKeepAliveStore.add(to.name)
+    if (to.name) {
+      iframeKeepAliveStore.add(to.name as string)
+    }
   }
 })
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Model\Permission\User;
 use Carbon\Carbon;
+use Hyperf\Database\Model\Relations\HasMany;
 use Hyperf\DbConnection\Model\Model;
 
 /**
@@ -46,4 +48,14 @@ class Tenant extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function members(): HasMany
+    {
+        return $this->hasMany(User::class, 'tenant_id', 'id')->where('user_type', 200);
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(TenantProject::class, 'tenant_id', 'id');
+    }
 }

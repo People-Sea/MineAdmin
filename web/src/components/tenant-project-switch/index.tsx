@@ -1,0 +1,60 @@
+import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
+
+export default defineComponent({
+  name: 'TenantProjectSwitch',
+  setup() {
+    const workspaceStore = useTenantWorkspaceStore()
+    const loading = ref(false)
+
+    onMounted(async () => {
+      loading.value = true
+      try {
+        await workspaceStore.init()
+      }
+      finally {
+        loading.value = false
+      }
+    })
+
+    return () => (
+      <div class="flex items-center gap-x-2">
+        <el-select
+          modelValue={workspaceStore.currentTenantId}
+          placeholder="选择租户"
+          filterable
+          size="small"
+          loading={loading.value}
+          class="!w-[180px]"
+          disabled={workspaceStore.isTenantMode}
+          onUpdate:modelValue={(value: number) => workspaceStore.changeTenant(value)}
+        >
+          {workspaceStore.tenantOptions.map(item => (
+            <el-option
+              key={item.id}
+              value={item.id}
+              label={item.status === 2 ? `${item.name}（停用）` : item.name}
+            />
+          ))}
+        </el-select>
+
+        <el-select
+          modelValue={workspaceStore.currentProjectId}
+          placeholder="选择项目"
+          filterable
+          size="small"
+          class="!w-[220px]"
+          disabled={!workspaceStore.currentTenantId || workspaceStore.projectOptions.length === 0}
+          onUpdate:modelValue={(value: number) => workspaceStore.changeProject(value)}
+        >
+          {workspaceStore.projectOptions.map(item => (
+            <el-option
+              key={item.id}
+              value={item.id}
+              label={item.is_default === 1 ? `${item.name}（主项目）` : item.name}
+            />
+          ))}
+        </el-select>
+      </div>
+    )
+  },
+})

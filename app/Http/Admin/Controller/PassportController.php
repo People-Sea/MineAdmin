@@ -11,7 +11,6 @@ use App\Http\Common\Middleware\AccessTokenMiddleware;
 use App\Http\Common\Middleware\RefreshTokenMiddleware;
 use App\Http\Common\Result;
 use App\Http\CurrentUser;
-use App\Model\Enums\User\Type;
 use App\Schema\UserSchema;
 use App\Service\PassportService;
 use Hyperf\Collection\Arr;
@@ -60,7 +59,7 @@ final class PassportController extends AbstractController
             $this->passportService->login(
                 $username,
                 $password,
-                Type::SYSTEM,
+                null,
                 $request->ip(),
                 $browser,
                 $os
@@ -99,7 +98,7 @@ final class PassportController extends AbstractController
         return $this->success(
             Arr::only(
                 $this->currentUser->user()?->toArray() ?: [],
-                ['username', 'nickname', 'avatar', 'signed', 'backend_setting', 'phone', 'email']
+                ['id', 'username', 'user_type', 'tenant_id', 'tenant_name', 'last_project_id', 'nickname', 'avatar', 'signed', 'backend_setting', 'phone', 'email']
             )
         );
     }

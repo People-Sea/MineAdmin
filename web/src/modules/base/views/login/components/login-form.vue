@@ -11,12 +11,10 @@
 import Message from 'vue-m-message'
 import { useI18n } from 'vue-i18n'
 import useUserStore from '@/store/modules/useUserStore.ts'
-import useSettingStore from '@/store/modules/useSettingStore.ts'
 
 const { t } = useI18n()
 const isProduction: boolean = import.meta.env.MODE === 'production'
 const userStore = useUserStore()
-const settingStore = useSettingStore()
 const router = useRouter()
 const isFormSubmit = ref(false)
 const isValidState = ref(true)
@@ -62,10 +60,10 @@ async function submit() {
 
   isFormSubmit.value = true
   userStore.login(form).then(async (userData: any) => {
-    const welcomePath = settingStore.getSettings('welcomePage').path ?? null
-    const redirect = router.currentRoute.value.query?.redirect ?? undefined
+    const redirectValue = router.currentRoute.value.query?.redirect
+    const redirect = Array.isArray(redirectValue) ? redirectValue[0] : redirectValue
     if (userData) {
-      await router.push({ path: redirect ?? welcomePath ?? '/' })
+      await router.push({ path: redirect ?? '/' })
     }
     isFormSubmit.value = false
   }).catch(() => isFormSubmit.value = false)

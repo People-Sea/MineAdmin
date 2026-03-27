@@ -29,6 +29,7 @@ class UserLoginSubscriber implements ListenerInterface
         if ($event instanceof UserLoginEvent) {
             $user = $event->getUser();
             Coroutine::create(fn () => $this->userService->save([
+                'tenant_id' => $user->tenant_id,
                 'username' => $user->username,
                 'ip' => $event->getIp(),
                 'os' => $event->getOs(),

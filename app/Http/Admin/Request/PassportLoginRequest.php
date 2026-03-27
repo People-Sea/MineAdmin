@@ -25,7 +25,7 @@ class PassportLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => 'required|string|exists:user,username',
+            'username' => 'required|string',
             'password' => 'required|string',
         ];
     }

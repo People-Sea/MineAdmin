@@ -9,7 +9,7 @@
 -->
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import LogoSvg from '@/assets/images/logo.svg'
+import LogoImage from '@/assets/images/mh_logo.png'
 
 const { t } = useI18n()
 
@@ -18,12 +18,9 @@ const appTitle = ref<string>(import.meta.env.VITE_APP_TITLE)
 
 <template>
   <div class="relative w-auto flex items-center gap-x-3">
-    <img :alt="appTitle" :src="LogoSvg" class="login-logo">
-    <h3 class="text-4xl text-white tracking-[3px] lg:text-[#2d2d33ff]">
-      {{ appTitle }}
+    <img :alt="appTitle" :src="LogoImage" class="login-logo">
+    <h3 class="whitespace-nowrap text-4xl leading-none text-white tracking-[3px] lg:text-[#2d2d33ff]">
+      {{ appTitle }} <span class="text-xl font-medium tracking-normal align-middle lg:text-2xl">· {{ t('mineAdmin.mark') }}</span>
     </h3>
-    <div class="pure-tag">
-      {{ t('mineAdmin.mark') }}
-    </div>
   </div>
 </template>

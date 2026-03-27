@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http;
 
+use App\Exception\BusinessException;
+use App\Http\Common\ResultCode;
 use App\Model\Enums\User\Status;
 use App\Model\Permission\User;
 use App\Service\PassportService;
@@ -33,7 +35,12 @@ final class CurrentUser
         if (Context::has('current_user')) {
             return Context::get('current_user');
         }
+
         $user = $this->userService->getInfo($this->id());
+        if ($user === null) {
+            throw new BusinessException(ResultCode::UNAUTHORIZED, trans('jwt.unauthorized'));
+        }
+
         Context::set('current_user', $user);
         return $user;
     }
@@ -50,15 +57,51 @@ final class CurrentUser
 
     public function isSuperAdmin(): bool
     {
-        return $this->user()->isSuperAdmin();
+        return $this->user()?->isSuperAdmin() ?? false;
+    }
+
+    public function isTenantUser(): bool
+    {
+        return $this->user()?->isTenantUser() ?? false;
+    }
+
+    public function tenantId(): int
+    {
+        return (int) ($this->user()?->tenant_id ?? 0);
+    }
+
+    public function isTenantAdmin(): bool
+    {
+        return $this->user()?->isTenantAdmin() ?? false;
     }
 
     public function filterCurrentUser(): array
     {
-        $permissions = $this->user()
+        $user = $this->user();
+        $permissions = $user
             ->getPermissions()
             ->pluck('name')
             ->unique();
+        if ($user->isTenantUser()) {
+            $allowedNames = array_map('strval', (array) config('tenant.allowed_menu_names', []));
+            $allowedPrefixes = array_map('strval', (array) config('tenant.allowed_menu_prefixes', []));
+            $permissions = $permissions
+                ->filter(static function ($name) use ($allowedNames, $allowedPrefixes) {
+                    $name = (string) $name;
+                    if (in_array($name, $allowedNames, true)) {
+                        return true;
+                    }
+
+                    foreach ($allowedPrefixes as $prefix) {
+                        if (str_starts_with($name, $prefix)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
+                ->values();
+        }
         $menuList = $permissions->isEmpty()
             ? []
             : $this->menuService

@@ -21,6 +21,7 @@ final class TenantRepository extends IRepository
     public function handleSearch(Builder $query, array $params): Builder
     {
         return $query
+            ->withCount(['members', 'projects'])
             ->when(Arr::get($params, 'name'), static function (Builder $query, $name) {
                 $query->where('name', 'like', '%' . $name . '%');
             })

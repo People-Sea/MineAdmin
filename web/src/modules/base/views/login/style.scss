@@ -11,15 +11,9 @@
 }
 
 .login-logo {
-  @apply h-[70px] w-[70px] lg:bg-none bg-white lg:rounded-none rounded-full
-    lg:p-0 p-1 lg:mb-0 mb-3 transition-all
+  @apply h-[70px] w-[70px] object-contain
+    mb-3 lg:mb-0 transition-all
   ;
-}
-
-.pure-tag {
-  @apply lg:-top-1 top-1 lg:left-[95px] left-[103px] absolute text-base transition-all
-    lg:bg-gradient-to-r lg:from-blue-500 lg:to-violet-500 lg:bg-clip-text lg:text-transparent
-    text-white animate-swing animate-duration-[1.2s] animate-count-infinite;
 }
 
 .login-form-container {

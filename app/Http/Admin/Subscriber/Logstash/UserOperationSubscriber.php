@@ -35,6 +35,7 @@ class UserOperationSubscriber implements ListenerInterface
                 return;
             }
             Coroutine::create(fn () => $this->logService->save([
+                'tenant_id' => $user->tenant_id,
                 'username' => $user->username,
                 'method' => $event->getMethod(),
                 'router' => $event->getPath(),

@@ -88,6 +88,8 @@ return (new PhpCsFixer\Config())
             ->exclude('vendor')
             ->exclude('bin')
             ->exclude('runtime')
+            ->exclude('databases/migrations')
+            ->exclude('databases/seeders')
             ->in(__DIR__)
     )
     ->setUsingCache(false);

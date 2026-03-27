@@ -4,7 +4,7 @@ declare(strict_types=1);
 use App\Model\Permission\Menu;
 use Hyperf\Database\Seeders\Seeder;
 
-class user_dept_20250310 extends Seeder
+class UserDept20250310 extends Seeder
 {
     /**
      * Run the database seeds.

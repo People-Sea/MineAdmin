@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Model\Permission;
 
+use App\Model\Concern\HasWorkspaceScope;
 use App\Model\DataPermission\Policy;
 use App\Model\Enums\User\Status;
 use App\Model\Enums\User\Type;
+use App\Model\Tenant;
+use App\Model\TenantProject;
 use Carbon\Carbon;
 use Hyperf\Collection\Collection;
 use Hyperf\Database\Model\Events\Creating;
 use Hyperf\Database\Model\Events\Deleted;
+use Hyperf\Database\Model\Relations\BelongsTo;
 use Hyperf\Database\Model\Relations\BelongsToMany;
 use Hyperf\Database\Model\Relations\HasOne;
 use Hyperf\DbConnection\Model\Model;
@@ -19,6 +23,8 @@ use Hyperf\DbConnection\Model\Model;
  * @property int $id 用户ID，主键
  * @property string $username 用户名
  * @property Type $user_type 用户类型：(100系统用户)
+ * @property null|int $tenant_id 所属租户ID
+ * @property null|int $last_project_id 最近使用项目ID
  * @property string $nickname 用户昵称
  * @property string $phone 手机
  * @property string $email 用户邮箱
@@ -39,9 +45,13 @@ use Hyperf\DbConnection\Model\Model;
  * @property Collection|Department[] $department 部门
  * @property Collection|Department[] $dept_leader 部门领导
  * @property Collection|Position[] $position 岗位
+ * @property null|Tenant $tenant
+ * @property Collection<int, TenantProject>|TenantProject[] $projects
  */
 final class User extends Model
 {
+    use HasWorkspaceScope;
+
     /**
      * The table associated with the model.
      */
@@ -56,7 +66,7 @@ final class User extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected array $fillable = ['id', 'username', 'password', 'user_type', 'nickname', 'phone', 'email', 'avatar', 'signed', 'status', 'login_ip', 'login_time', 'backend_setting', 'created_by', 'updated_by', 'created_at', 'updated_at', 'remark'];
+    protected array $fillable = ['id', 'username', 'password', 'user_type', 'tenant_id', 'last_project_id', 'nickname', 'phone', 'email', 'avatar', 'signed', 'status', 'login_ip', 'login_time', 'backend_setting', 'created_by', 'updated_by', 'created_at', 'updated_at', 'remark'];
 
     /**
      * The attributes that should be cast to native types.
@@ -65,6 +75,8 @@ final class User extends Model
         'id' => 'integer',
         'status' => Status::class,
         'user_type' => Type::class,
+        'tenant_id' => 'integer',
+        'last_project_id' => 'integer',
         'created_by' => 'integer',
         'updated_by' => 'integer',
         'created_at' => 'datetime',
@@ -82,9 +94,22 @@ final class User extends Model
         );
     }
 
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
+    }
+
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(TenantProject::class, 'tenant_project_user', 'user_id', 'project_id')
+            ->withPivot(['tenant_id', 'created_by', 'updated_by'])
+            ->withTimestamps();
+    }
+
     public function deleted(Deleted $event)
     {
         $this->roles()->detach();
+        $this->projects()->detach();
         $this->policy()->delete();
     }
 
@@ -113,6 +138,21 @@ final class User extends Model
     public function isSuperAdmin(): bool
     {
         return $this->roles()->where('code', 'SuperAdmin')->exists();
+    }
+
+    public function isTenantUser(): bool
+    {
+        return $this->user_type === Type::USER;
+    }
+
+    public function hasRoleCode(string $code): bool
+    {
+        return $this->roles()->where('code', $code)->exists();
+    }
+
+    public function isTenantAdmin(): bool
+    {
+        return $this->hasRoleCode((string) config('tenant.admin_role_code', 'TenantAdmin'));
     }
 
     public function getRoles(array $fields): Collection

@@ -12,6 +12,12 @@ import type { Router, RouteRecordRaw } from 'vue-router'
 import dashboardRoute from '@/router/static-routes/dashboardRoute'
 import welcomeRoute from '@/router/static-routes/welcomeRoute'
 import usePluginStore from '@/store/modules/usePluginStore.ts'
+import { getAuthHomePage } from '@/utils/homePage.ts'
+
+interface InitRouteOptions {
+  rootRedirect?: string
+  includeDefaultEntryRoutes?: boolean
+}
 
 const useRouteStore = defineStore(
   'useRouteStore',
@@ -20,8 +26,8 @@ const useRouteStore = defineStore(
     // 原始路由
     const routesRaw = ref<RouteRecordRaw[]>([])
     const flatteningRoutesList = ref<RouteRecordRaw[]>([])
-    async function initRoutes(router: Router, routes: any[]) {
-      const MineRootLayoutRoute = getMineRootLayoutRoute()
+    async function initRoutes(router: Router, routes: any[], options: InitRouteOptions = {}) {
+      const MineRootLayoutRoute = getMineRootLayoutRoute(options)
 
       router.hasRoute('MineRootLayoutRoute') && router.removeRoute('MineRootLayoutRoute')
       router.addRoute(MineRootLayoutRoute)
@@ -50,14 +56,13 @@ const useRouteStore = defineStore(
       await usePluginStore().callHooks('registerRoute', router, routesRaw.value)
     }
 
-    function getMineRootLayoutRoute(): RouteRecordRaw {
-      const welcomePage: SystemSettings.welcomePage = defaultSetting.value.welcomePage
-      return {
-        name: 'MineRootLayoutRoute',
-        path: '/',
-        component: () => import('@/layouts'),
-        redirect: welcomePage.path,
-        children: [
+    function getMineRootLayoutRoute(options: InitRouteOptions = {}): RouteRecordRaw {
+      const welcomePage: SystemSettings.welcomePage = getAuthHomePage()
+      const children: RouteRecordRaw[] = []
+      const userStore = useUserStore()
+
+      if (options.includeDefaultEntryRoutes !== false && !userStore.isTenantUser()) {
+        children.push(
           Object.assign(welcomeRoute, {
             name: welcomePage.name,
             path: welcomePage.path,
@@ -73,16 +78,27 @@ const useRouteStore = defineStore(
             },
           }),
           toRecordRawRoute(dashboardRoute),
-          toRecordRawRoute({
-            path: '/:pathMatch(.*)*',
-            name: 'MineSystemError',
-            component: () => import(('@/layouts/[...all].tsx')),
-            meta: {
-              hidden: true,
-              i18n: 'menu.pageError',
-            },
-          }),
-        ],
+        )
+      }
+
+      children.push(
+        toRecordRawRoute({
+          path: '/:pathMatch(.*)*',
+          name: 'MineSystemError',
+          component: () => import(('@/layouts/[...all].tsx')),
+          meta: {
+            hidden: true,
+            i18n: 'menu.pageError',
+          },
+        }),
+      )
+
+      return {
+        name: 'MineRootLayoutRoute',
+        path: '/',
+        component: () => import('@/layouts'),
+        redirect: options.rootRedirect ?? welcomePage.path,
+        children,
       }
     }
 

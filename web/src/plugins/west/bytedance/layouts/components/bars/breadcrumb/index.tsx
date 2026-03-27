@@ -11,13 +11,14 @@ import type { ComputedRef, VNode } from 'vue'
 import { TransitionGroup } from 'vue'
 import type { MineRoute } from '#/global'
 import checkRouteIsRedirect from '@/utils/checkRouteIsRedirect.ts'
+import { getAuthHomePage } from '@/utils/homePage.ts'
 
 export default defineComponent({
   name: 'Breadcrumb',
   setup() {
-    const settingStore = useSettingStore()
     const router = useRouter()
     const currentRoute = useRoute()
+    const homePage = computed(() => getAuthHomePage())
     const { watchRoute } = useMenuStore()
     const breadcrumbs: ComputedRef<(MineRoute.routeRecord | undefined)[]> = computed(() => {
       if (!watchRoute?.meta?.breadcrumb) {
@@ -58,10 +59,10 @@ export default defineComponent({
     }
     return () => (
       <div class="breadcrumb">
-        <router-link to={settingStore.getSettings('welcomePage').path}>
-          <ma-svg-icon name={settingStore.getSettings('welcomePage').icon} />
-          {useTrans('menu.welcome')}
-          { (currentRoute.name !== settingStore.getSettings('welcomePage').name && breadcrumbs.value.length > 0)
+        <router-link to={homePage.value.path}>
+          <ma-svg-icon name={homePage.value.icon} />
+          {homePage.value.title}
+          { (currentRoute.name !== homePage.value.name && breadcrumbs.value.length > 0)
             && <ma-svg-icon name="material-symbols:arrow-right-rounded" className="icon" size={22} />}
         </router-link>
         {breadcrumbs.value.length > 0

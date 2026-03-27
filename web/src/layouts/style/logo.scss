@@ -3,7 +3,7 @@
 }
 
 .mine-logo-img {
-  @apply h-[35px] w-[35px];
+  @apply h-[35px] w-[35px] object-contain;
 }
 
 .mine-logo-title {

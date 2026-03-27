@@ -107,7 +107,7 @@ mineAdmin:
     has: 此標簽頁已收藏過
     noFavorite: 還沒有收藏任何標簽頁
     close: 關閉標籤頁
-  slogan: 一款開箱即用的後臺管理系統
+  slogan: 面向團隊協作的批量廣告投放系統
   toolbars:
     notification: 通知
     settings: 設置
@@ -116,7 +116,7 @@ mineAdmin:
     sorts: 工具列排序
     switchMode: 切換顏色模式
     translate: 國際化
-  mark: 開箱即用
+  mark: 批量投放
 menu:
   uc:index: 首頁
   dashboard:analysis: 分析頁

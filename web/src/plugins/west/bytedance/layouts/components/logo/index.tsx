@@ -8,8 +8,8 @@
  * @Link   https://github.com/mineadmin
  */
 import '@/layouts/style/logo.scss'
-import type { SystemSettings } from '#/global'
-import LogoSvg from '@/assets/images/logo.svg'
+import LogoImage from '@/assets/images/mh_logo.png'
+import { getAuthHomePage } from '@/utils/homePage.ts'
 
 export default defineComponent({
   name: 'Logo',
@@ -20,12 +20,12 @@ export default defineComponent({
   },
   setup(props) {
     const title = props.title ?? import.meta.env.VITE_APP_TITLE
-    const settings: SystemSettings.welcomePage = useSettingStore().getSettings('welcomePage')
+    const settings = computed(() => getAuthHomePage())
     return () => {
       return (
-        <router-link to={settings.path} class={['mine-main-logo', 'cursor-pointer']} title={title}>
+        <router-link to={settings.value.path} class={['mine-main-logo', 'cursor-pointer']} title={title}>
           {props.showLogo && (
-            <img src={LogoSvg ?? null} alt={title} class="h-[30px] w-[170px]" />
+            <img src={LogoImage} alt={title} class="mine-logo-img" />
           )}
         </router-link>
       )

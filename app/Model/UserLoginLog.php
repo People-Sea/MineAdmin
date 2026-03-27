@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Model\Concern\HasWorkspaceScope;
 use Carbon\Carbon;
 use Hyperf\Database\Model\Events\Creating;
 use Hyperf\DbConnection\Model\Model;
 
 /**
  * @property int $id 主键
+ * @property null|int $tenant_id 租户ID
  * @property string $username 用户名
  * @property string $ip 登录IP地址
  * @property string $os 操作系统
@@ -21,6 +23,8 @@ use Hyperf\DbConnection\Model\Model;
  */
 class UserLoginLog extends Model
 {
+    use HasWorkspaceScope;
+
     public bool $timestamps = false;
 
     /**
@@ -31,12 +35,12 @@ class UserLoginLog extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected array $fillable = ['id', 'username', 'ip', 'os', 'browser', 'status', 'message', 'login_time', 'remark'];
+    protected array $fillable = ['id', 'tenant_id', 'username', 'ip', 'os', 'browser', 'status', 'message', 'login_time', 'remark'];
 
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'status' => 'integer', 'login_time' => 'datetime'];
+    protected array $casts = ['id' => 'integer', 'tenant_id' => 'integer', 'status' => 'integer', 'login_time' => 'datetime'];
 
     public function creating(Creating $event)
     {

@@ -15,6 +15,8 @@ export default function getTableColumns(dialog: UseDialogExpose, t: any): MaProT
     code: '租户编码',
     contactName: '联系人',
     contactPhone: '联系电话',
+    memberCount: '成员数',
+    projectCount: '项目数',
     createdAt: '创建时间',
   }
 
@@ -25,6 +27,8 @@ export default function getTableColumns(dialog: UseDialogExpose, t: any): MaProT
     { label: () => labels.code, prop: 'code', minWidth: '160px' },
     { label: () => labels.contactName, prop: 'contact_name', minWidth: '140px' },
     { label: () => labels.contactPhone, prop: 'contact_phone', minWidth: '140px' },
+    { label: () => labels.memberCount, prop: 'member_count', width: '90px' },
+    { label: () => labels.projectCount, prop: 'project_count', width: '90px' },
     {
       label: () => t('crud.status'),
       prop: 'status',

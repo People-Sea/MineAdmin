@@ -31,6 +31,7 @@ final class PermissionMiddleware implements MiddlewareInterface
         if ($user->status->isDisable()) {
             throw new BusinessException(code: ResultCode::DISABLED, message: trans('user.disable'));
         }
+        $this->ensureTenantControllerAccessible($request->getAttribute(Dispatched::class));
         if ($user->isSuperAdmin()) {
             return $handler->handle($request);
         }
@@ -76,5 +77,31 @@ final class PermissionMiddleware implements MiddlewareInterface
         if ($operation === Permission::OPERATION_OR) {
             throw new BusinessException(code: ResultCode::FORBIDDEN);
         }
+    }
+
+    private function ensureTenantControllerAccessible(?Dispatched $dispatched): void
+    {
+        if ($dispatched === null || ! $this->currentUser->isTenantUser()) {
+            return;
+        }
+
+        $parseResult = $this->parse($dispatched->handler->callback);
+        if (! $parseResult) {
+            return;
+        }
+
+        [$controller] = $parseResult;
+        $allowedControllers = array_map('strval', (array) config('tenant.allowed_controllers', []));
+        if (in_array($controller, $allowedControllers, true)) {
+            return;
+        }
+
+        foreach ((array) config('tenant.allowed_controller_prefixes', []) as $prefix) {
+            if (str_starts_with($controller, (string) $prefix)) {
+                return;
+            }
+        }
+
+        throw new BusinessException(code: ResultCode::FORBIDDEN);
     }
 }

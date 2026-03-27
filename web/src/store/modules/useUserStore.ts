@@ -14,6 +14,7 @@ import useHttp from '@/hooks/auto-imports/useHttp.ts'
 import * as PermissionApi from '~/base/api/permission.ts'
 import type { MenuVo, RoleVo } from '~/base/api/permission.ts'
 import { recursionGetKey } from '@/utils/recursionGetKey.ts'
+import { TENANT_HOME_PAGE } from '@/utils/homePage.ts'
 
 export interface LoginParams {
   username: string
@@ -27,7 +28,12 @@ export interface LoginResult {
 }
 
 export interface UserInfo {
+  id: number
   username: string
+  user_type?: number
+  tenant_id?: number
+  tenant_name?: string
+  last_project_id?: number
   nickname: string
   avatar: string
   phone: string
@@ -53,6 +59,8 @@ function loginApi(data: LoginParams): Promise<ResponseStruct<LoginResult>> {
   return useHttp().post('/admin/passport/login', data)
 }
 
+export type LoginScope = 'platform' | 'tenant'
+
 const useUserStore = defineStore(
   'useUserStore',
   () => {
@@ -60,6 +68,7 @@ const useUserStore = defineStore(
     const router = useRouter()
     const setting = useSettingStore()
     const token = ref<string | null>(cache.get('token', null))
+    const loginScope = ref<LoginScope>(cache.get('login_scope', 'platform'))
     const locales = ref<any[]>([])
     const language = ref(cache.get('language', 'zh_CN'))
     const isLogin = computed(() => !!token.value)
@@ -107,7 +116,23 @@ const useUserStore = defineStore(
       setMenu(res.data)
     }
 
-    async function login(data: { username: string, password: string, code: string, [key: string]: any }) {
+    function getLoginScope(): LoginScope {
+      return loginScope.value
+    }
+
+    function isTenantUser(): boolean {
+      return userInfo.value?.user_type === 200
+    }
+
+    function getHomePage() {
+      return isTenantUser() ? TENANT_HOME_PAGE : setting.getSettings('welcomePage')
+    }
+
+    function getHomePath(): string {
+      return getHomePage().path ?? '/'
+    }
+
+    async function login(data: { username: string, password: string, code?: string, [key: string]: any }) {
       await usePluginStore().callHooks('loginBefore', data)
       return new Promise((resolve, reject) => {
         loginApi(data).then(async (res) => {
@@ -126,6 +151,8 @@ const useUserStore = defineStore(
       try {
         const routeStore = useRouteStore()
         const { data } = await getInfo()
+        loginScope.value = data.user_type === 200 ? 'tenant' : 'platform'
+        cache.set('login_scope', loginScope.value)
         setUserInfo(data)
         if ((setting.getSettings('app')?.loadUserSetting ?? true) && data.backend_setting) {
           const raw = data?.backend_setting
@@ -153,7 +180,7 @@ const useUserStore = defineStore(
       await router.push({
         name: 'login',
         query: {
-          ...(router.currentRoute.value.name !== 'login' && { redirect }),
+          ...(!['login', 'tenantLogin'].includes(String(router.currentRoute.value.name)) && { redirect }),
         },
       })
     }
@@ -185,6 +212,12 @@ const useUserStore = defineStore(
     function setUserInfo(data: any): boolean {
       userInfo.value = data
       return true
+    }
+
+    function setLastProjectId(projectId?: number): void {
+      if (userInfo.value) {
+        userInfo.value.last_project_id = projectId
+      }
     }
 
     function getPermissions(): string[] {
@@ -231,9 +264,11 @@ const useUserStore = defineStore(
     function clearInfo() {
       cache.remove('token')
       cache.remove('refresh_token')
+      cache.remove('login_scope')
       cache.remove('language')
       cache.remove('expire')
       token.value = null
+      loginScope.value = 'platform'
       language.value = ''
       userInfo.value = null
       permissions.value = []
@@ -245,6 +280,10 @@ const useUserStore = defineStore(
       isLogin,
       login,
       logout,
+      getLoginScope,
+      isTenantUser,
+      getHomePage,
+      getHomePath,
       getDropdownMenu,
       getDropdownMenuState,
       setDropdownMenuState,
@@ -253,6 +292,7 @@ const useUserStore = defineStore(
       getLanguage,
       requestUserInfo,
       getUserInfo,
+      setLastProjectId,
       setPermissions,
       getPermissions,
       getRoles,

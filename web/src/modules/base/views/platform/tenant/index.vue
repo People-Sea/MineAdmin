@@ -10,6 +10,7 @@ import getTableColumns from './data/getTableColumns.tsx'
 import useDialog from '@/hooks/useDialog.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
+import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
 
 import TenantForm from './form.vue'
 
@@ -21,37 +22,34 @@ const selections = ref<any[]>([])
 const i18n = useTrans() as TransType
 const t = i18n.globalTrans
 const msg = useMessage()
+const workspaceStore = useTenantWorkspaceStore()
 const pageTitle = '租户管理'
-const pageSubTitle = '提供平台侧租户新增、编辑、停用与删除能力。'
+const pageSubTitle = '创建租户时自动生成主项目和首个租户管理员。'
 
 const maDialog: UseDialogExpose = useDialog({
   lgWidth: '600px',
-  ok: ({ formType }, okLoadingState: (state: boolean) => void) => {
+  ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
-    const elForm = formRef.value.maForm.getElFormRef()
-    elForm.validate().then(() => {
-      switch (formType) {
-        case 'add':
-          formRef.value.add().then((res: any) => {
-            res.code === ResultCode.SUCCESS ? msg.success(t('crud.createSuccess')) : msg.error(res.message)
-            maDialog.close()
-            proTableRef.value.refresh()
-          }).catch((err: any) => {
-            msg.alertError(err)
-          })
-          break
-        case 'edit':
-          formRef.value.edit().then((res: any) => {
-            res.code === ResultCode.SUCCESS ? msg.success(t('crud.updateSuccess')) : msg.error(res.message)
-            maDialog.close()
-            proTableRef.value.refresh()
-          }).catch((err: any) => {
-            msg.alertError(err)
-          })
-          break
+    try {
+      const elForm = formRef.value.maForm.getElFormRef()
+      await elForm.validate()
+      const response = formType === 'add' ? await formRef.value.add() : await formRef.value.edit()
+      if (response.code === ResultCode.SUCCESS) {
+        msg.success(formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'))
+        maDialog.close()
+        await workspaceStore.refreshTenants()
+        await proTableRef.value.refresh()
       }
-    }).catch()
-    okLoadingState(false)
+      else {
+        msg.error(response.message)
+      }
+    }
+    catch (error) {
+      msg.alertError(error instanceof Error ? error.message : String(error))
+    }
+    finally {
+      okLoadingState(false)
+    }
   },
 })
 
@@ -92,6 +90,7 @@ function handleDelete() {
     const response = await deleteByIds(ids)
     if (response.code === ResultCode.SUCCESS) {
       msg.success(t('crud.delSuccess'))
+      await workspaceStore.refreshTenants()
       proTableRef.value.refresh()
     }
   })
