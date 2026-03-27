@@ -73,8 +73,7 @@ final class UserController extends AbstractController
         summary: '更新用户信息',
         security: [['Bearer' => [], 'ApiKey' => []]],
         tags: ['用户管理']
-    )
-    ]
+    )]
     #[RequestBody(content: new JsonContent(ref: UserRequest::class, title: '修改个人信息'))]
     #[Permission(code: 'permission:user:update')]
     #[ResultResponse(new Result())]
