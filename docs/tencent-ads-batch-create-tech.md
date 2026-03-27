@@ -7,6 +7,8 @@
 
 - `docs/tencent-ads-batch-create-prd.md`
 - `docs/tencent-ads-batch-create-tech.md`
+- `docs/tencent-ads-batch-create-task-list.md`
+- `docs/tencent-ads-batch-create-table-design.md`
 
 ## 2. 当前 MVP 共识
 ### 2.1 总原则
@@ -14,10 +16,12 @@
 - 先保证能跑通租户、项目、员工、账号授权、扫码认证、异步任务。
 - 保留扩展位，但当前不引入复杂部门树、复杂角色树。
 - 素材、模板、任务都先跟项目权限走，不做租户级默认共享。
+- 所有导出统一进入任务中心，不做分散的同步导出实现。
+- 任务中心产品入口统一，但底层采用“统一任务主表 + 类型明细表”方案，避免单表失控。
 
-### 2.2 已放弃方案
-- 不再使用官方多租户插件。
-- 不再单独建设 `tenant_member`、`tenant_project_member` 这类平行认证链路。
+### 2.2 当前实现边界
+- MVP 租户能力统一基于现有 `MineAdmin user/role/menu` 体系实现。
+- 租户与项目成员关系通过业务表建模，不单独建设平行认证链路。
 
 ### 2.3 平台与租户分离
 - 平台与租户统一使用 `/login` 登录入口。
@@ -122,9 +126,11 @@ MVP 先建最少模型：
 - `project_template`
 - `auth_session`
 - `user_token`
-- `batch_task`
-- `batch_sub_task`
-- `task_log`
+- `async_task`
+- `async_task_item`
+- `async_task_log`
+- `ad_batch_task_detail`
+- `export_task_detail`
 
 ### 3.3 为什么先不做复杂角色表
 MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单权限，不再额外新增 `tenant_role` 体系。
@@ -157,16 +163,16 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 关键规则：
 
 - 平台应用由平台统一管理并分配给租户，不属于租户/项目级可编辑对象。
-- 平台登录入口与租户登录入口分开，但底层都走统一 `user` 体系。
-- 平台登录入口为 `/login`。
-- 租户旧入口 `/tenant/login` 仅保留跳转兼容，统一进入 `/login`。
+- 平台与租户统一使用 `/login`，底层共用同一套 `user` 体系。
+- 不再保留租户旧入口 `/tenant/login`。
 - 租户登录凭证使用 `username + password`。
 - 新租户自动创建一个主项目。
 - 员工通过“加入项目”获得项目访问权。
 - 租户授权广告主账号时必须使用平台已分配应用。
 - 广告主账号归属到项目，再授权给员工。
 - 素材、模板、任务都默认归项目管理。
-- 任务必须属于某个项目。
+- 广告投放类任务必须属于某个项目。
+- 任务中心允许平台级、租户级、项目级任务共存。
 - 租户侧业务页面默认在某个当前项目下运行，不按全租户平铺展示。
 - 员工登录后，如只加入一个项目则默认进入该项目；如加入多个项目，则允许切换当前项目。
 - 当前 MVP 只保留两类租户角色：
@@ -194,6 +200,10 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 平台应用表不带 `tenant_id`、`project_id`
 - 租户应用分配关系表带 `tenant_id`，不带 `project_id`
 - 可在员工侧预留 `last_project_id` 一类字段，用于记录最近使用项目
+- 任务中心统一使用 `async_task` 作为主表，公共字段只放通用检索与状态信息
+- 任务归属统一用 `scope_type` + `scope_id` 表示，可取 `platform / tenant / project`
+- 广告投放类任务除了 `scope_type=project`，仍应显式保留 `project_id`，便于项目上下文查询
+- 明细参数、导出文件信息、业务统计结果放入类型明细表，不堆进任务主表
 - 执行链路相关表必须记录：
   - `operator_user_id`
   - `auth_user_id`
@@ -229,10 +239,20 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 ## 6. 异步任务实现原则
 ### 6.1 主链路
 - 使用 `hyperf/async-queue`
-- 主任务落库后，认证成功再拆子任务
+- 所有异步任务先写入 `async_task` 主表，再按任务类型进入对应执行链路
+- 广告批量任务落库后，认证成功再拆执行项
 - Job 中只放 ID，不放敏感凭证
 
-### 6.2 补偿链路
+### 6.2 导出任务原则
+- 所有导出能力统一创建异步任务，不再在页面请求中直接导出大文件
+- 页面只负责提交导出请求、展示任务状态、提供结果下载入口
+- 导出结果文件地址、过期时间、失败原因等信息写入 `export_task_detail`
+- 任务中心按作用域展示导出记录：
+  - 项目导出只在当前项目可见
+  - 租户导出在租户范围可见
+  - 平台导出仅平台可见
+
+### 6.3 补偿链路
 - 使用 `hyperf/crontab`
 - 用于：
   - 超时巡检
@@ -268,8 +288,9 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 ### 第五步：任务中心
 实现：
 
-- 主任务
-- 子任务
+- 统一任务主表
+- 广告批量任务接入
+- 导出任务接入
 - 状态流转
 - 队列执行
 
@@ -286,10 +307,12 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 
 1. 先读 `docs/tencent-ads-batch-create-prd.md`
 2. 再读 `docs/tencent-ads-batch-create-tech.md`
-3. 当前目标是：
+3. 再读 `docs/tencent-ads-batch-create-task-list.md`
+4. 如要做表设计、任务中心或导出，再读 `docs/tencent-ads-batch-create-table-design.md`
+5. 当前目标是：
    - 做最快落地的 MVP
    - 组织架构采用 `平台 -> 租户 -> 项目 -> 广告主账户 -> 员工授权 -> 任务`
-   - 不使用官方多租户插件
+   - 租户能力基于现有 `MineAdmin` 体系实现
    - 平台与租户身份分离
    - 异步主链路使用 `hyperf/async-queue`
 

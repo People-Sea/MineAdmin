@@ -8,6 +8,7 @@
 - 当前范围以以下文档为准：
   - `docs/tencent-ads-batch-create-prd.md`
   - `docs/tencent-ads-batch-create-tech.md`
+  - `docs/tencent-ads-batch-create-table-design.md`
 
 ## 1. 文档与方案确认
 
@@ -16,7 +17,7 @@
 
 ## 2. 一期表设计
 
-- [ ] 输出一期表设计文档
+- [ ] 输出一期表设计文档（`docs/tencent-ads-batch-create-table-design.md`）
 - [ ] 建立一期数据库迁移文件
 - [ ] 完成基础模型定义
 - [ ] 新租户自动生成主项目
@@ -31,7 +32,7 @@
 ## 4. 租户后台基础框架
 
 - [ ] 平台与租户共用一套 `user` 登录链
-- [ ] 登录入口统一为 `/login`，旧 `/tenant/login` 仅保留跳转兼容
+- [ ] 登录入口统一为 `/login`，移除旧 `/tenant/login` 入口
 - [ ] 统一租户作用域（`tenant_id`）
 - [ ] 租户登录字段改为统一 `username + password`
 - [ ] 当前项目上下文切换
@@ -71,10 +72,13 @@
 - [ ] 项目级模板管理
 - [ ] 模板项目权限控制
 
-## 11. 任务中心与异步链路
+## 11. 任务中心、导出与异步链路
 
+- [ ] 建立统一 `async_task` 任务主表
 - [ ] 创建批量建广告任务
-- [ ] 主任务与子任务状态流转
+- [ ] 广告任务执行项状态流转
+- [ ] 所有导出任务统一接入任务中心
+- [ ] 导出文件生成、存储与下载链路
 - [ ] 手动重试能力
 - [ ] 接入 `hyperf/async-queue`
 - [ ] 子任务拆分与队列执行
