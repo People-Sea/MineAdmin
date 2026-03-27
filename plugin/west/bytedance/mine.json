@@ -1,0 +1,23 @@
+{
+    "name": "west/bytedance",
+    "version": "3.1.5",
+    "type": "mixed",
+    "description": "巨量引擎、抖店前端布局插件",
+    "author": [
+        {
+            "name": "west"
+        }
+    ],
+    "package": {
+        "dependencies": []
+    },
+    "composer": {
+        "require": [],
+        "psr-4": {
+            "Plugin\\West\\Bytedance\\": "src"
+        },
+        "installScript": "Plugin\\West\\Bytedance\\InstallScript",
+        "uninstallScript": "Plugin\\West\\Bytedance\\UninstallScript",
+        "config": "Plugin\\West\\Bytedance\\ConfigProvider"
+    }
+}

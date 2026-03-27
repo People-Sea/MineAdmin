@@ -1,0 +1,386 @@
+:root {
+  --bg-image: url('@/plugins/west/bytedance/assets/images/bg.jpg');
+}
+
+body:before {
+  width: 100%;
+  height: 100vh;
+  background: var(--bg-image) top no-repeat !important; // 使用 CSS 变量
+  content: "";
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  filter: var(--bg-filter);
+  background-size: cover !important;
+}
+
+.mine-desc-info {
+  @apply flex justify-between items-center text-sm mt-2;
+
+  & .mine-desc-label {
+    @apply w-8/12 text-gray-8 dark-text-gray-2;
+  }
+
+  & .mine-desc-value {
+    @apply w-4/12 text-gray-5 dark-text-gray-3 text-right;
+  }
+}
+
+//牛马Bar样式
+.mineadmin-pro-table .mineadmin-pro-table-header{
+  --tw-border-opacity: 1;
+  background: #fff6;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+
+.dark .mineadmin-pro-table .mineadmin-pro-table-header{
+  --tw-border-opacity: 0.1;
+  background: transparent;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+
+.dark:before {
+  background: none !important;
+}
+.mine-uc-container{
+  position: relative;
+}
+.mine-main {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 65px);
+  overflow: hidden;
+  gap: 10px;
+  position: relative;
+}
+.mine-toolbar{
+  height: 64px !important;
+}
+.co-worker-content{
+  width: 100%;
+  height: calc(100vh - 65px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.oc-worker-area {
+  width: 100%;
+  // flex: 1;
+  height: calc(100vh - 115px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 合并 .mine-sub-aside-container, .mine-sub-aside 和其 dark 模式下的样式 */
+.mine-sub-aside-container,
+.mine-sub-aside{
+  background-color: transparent;
+  border-right-color: transparent;
+}
+
+.mine-sub-menu,
+.dark .mine-sub-menu,
+.dark .group{
+  background-color: transparent !important;
+  //background-color: rgb(24 24 24 / var(--un-bg-opacity));
+}
+
+/* 合并 .mine-tabbar 及其内部元素的样式 */
+.mine-tabbar, .mine-tab-arrow,
+.dark .mine-sub-aside-container,
+.dark .mine-sub-aside,
+.dark .mine-toolbar,
+.dark .mine-tabbar,
+.dark .mine-tabbar .tab-item,
+.dark .mine-tab-arrow,
+.dark .mine-uc-container .mine-uc-aside {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.dark .mine-uc-container .mine-uc-aside {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.mine-tabbar .tab-item {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.mine-tabbar .tab-item.cardPlan.active,
+.mine-tabbar .tab-item.rectanglePlan.active {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 如果 .rectanglePlan 和 .cardPlan 共用同样的样式，可合并 */
+.mine-tabbar .tab-item.rectanglePlan,
+.mine-tabbar .tab-item.cardPlan {
+  box-shadow: none;
+}
+
+.mine-main-logo {
+  position: relative;
+  width: 200px;
+}
+
+.brand-matrix-entrance {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.29) 0%, rgba(255, 255, 255, 0.6) 100%);
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(15px);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.brand-matrix-entrance-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+
+.index_header-user {
+  z-index: 505;
+  height: 32px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  border-radius: 34px;
+  background-color: #ebf5ff;
+  padding: 0 4px;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  position: relative;
+}
+.dark .index_header-user,
+.dark .index_header-cc-all,
+.dark .brand-matrix-entrance{
+  background-color: rgb(24, 24, 24, var(--un-bg-opacity)) /* #181818 */;
+  background: rgb(24, 24, 24, var(--un-bg-opacity)) /* #181818 */;
+}
+.oc-userinfo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mine-user-bar .mine-text-avatar{
+  width: 26px;
+  height: 26px;
+}
+
+.index_header-cc-all {
+  cursor: pointer;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  padding: 0 5px;
+  height: 26px;
+  font-size: 12px;
+  color: #03627a;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  border-radius: 32px;
+  border: 1px solid #f8fbfe;
+  background: rgba(6, 214, 219, .2);
+}
+
+.mine-footer{
+  position: relative;
+}
+
+.oc-link{
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 0.5rem;
+  border-radius: 0.25rem;
+  padding: 1rem;
+}
+
+
+// 菜单选中样式
+.mine-menu-link.active{
+  background: white;
+}
+
+.dark .mine-menu-link.active{
+  background-color: rgb(var(--ui-primary)) !important;
+}
+
+.oc-worker-area .mine-layout .mine-appstore-filter{
+  top: 0 !important;
+}
+
+
+
+.oc-drawer-close {
+  align-items: center;
+  background: rgb(var(--ui-primary));
+  border-radius: 4px 0 0 4px;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  left: -32px;
+  position: absolute;
+  top: 13px;
+  width: 32px;
+  z-index: 999999;
+  cursor: pointer;
+}
+
+.oc-drawer-box .el-drawer {
+  overflow: visible;
+}
+
+.oc-drawer-box .el-drawer__header {
+  margin-bottom: 0;
+  padding-bottom: 20px;
+}
+
+.oc-drawer-box .el-drawer__body {
+  overflow: hidden;
+  background: rgb(249, 250, 251);
+  padding: 10px;
+}
+
+.dark .oc-drawer-box .el-drawer__body {
+  --un-bg-opacity: 1;
+  background-color: rgb(10 10 10 / var(--un-bg-opacity));
+}
+
+.dark .oc-page-header-main .text-black {
+  color: white !important;
+}
+
+
+.mine-main-aside-content{
+  background: transparent !important;
+  width: 170px;
+  border-radius: 10px 0 0 10px;
+  align-items: center;
+}
+.mine-main-aside-list a{
+  display: flex;
+  gap: 10px;
+}
+.mine-main-aside-list a.active,
+.mine-main-aside-list a:hover{
+  background: linear-gradient(279.73deg, rgba(var(--ui-primary) / .02) 12.19%, rgba(var(--ui-primary) / .1));
+  color: var(--el-color-primary);
+  font-weight: 600;
+  outline-width: inherit;
+}
+
+
+
+
+// 侧边栏暗夜模式
+.asideDark {
+  background: #181818;
+}
+.asideDark .mine-main-aside-list a{
+  color: white;
+}
+
+.asideDark .mine-main-aside-list a.active{
+  background: rgb(var(--ui-primary));
+}
+.asideDark .mine-menu-link{
+ color: #e5e7eb;
+}
+.asideDark .mine-menu-link.active{
+  background-color: rgb(var(--ui-primary) / 70%) !important;
+}
+.asideDark .mine-sub-aside .mine-sub-aside-fixed-button,
+.asideDark .mine-sub-aside .mine-sub-aside-collapse-button{
+  color: white !important;
+  background-color: #2d2d2d;
+}
+
+//isMixedLayout模式下菜单选中
+.newActive{
+  background: transparent !important;
+  position: relative;
+}
+.ocIsMixed{
+  overflow: unset !important;
+}
+.ocIsMixed:hover{
+  background: transparent !important;
+}
+.newActive:after {
+  content: "";
+  width: 16px;
+  height: 4px;
+  background-color: var(--el-color-primary);
+  border-radius: 2px;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
+.mine-menu-link.parentActive {
+  --un-text-opacity: 1;
+  color: rgb(var(--ui-primary) / var(--un-text-opacity));
+}
+
+.mobileBg{
+  background: white;
+}
+
+.ocMenuPop{
+  background: white !important;
+}
+
+// 适配暗夜模式
+.dark .group,
+.dark .mobileBg,
+.dark .ocMenuPop{
+  --un-bg-opacity: 1;
+  background-color: rgb(24 24 24 / var(--un-bg-opacity)) !important;
+}
+.asideDark .ocSubTitle,
+.dark .ocSubTitle{
+  color: white;
+}
+
+.mineadmin-pro-table .mineadmin-pro-table-header-actions,
+.mineadmin-pro-table .mineadmin-pro-table-toolbar-content,
+.mineadmin-pro-table .mineadmin-pro-table-toolbar {
+  align-items: flex-start;
+}
+
+.mineadmin-pro-table .mineadmin-pro-table-toolbar-content {
+  flex: 1;
+}

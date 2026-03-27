@@ -1,0 +1,12 @@
+bytedance:
+  configTips: The plugin configuration is stored locally only, changing devices will result in data loss!
+  layoutConfig: Layout Configuration
+  title: Plugin Configuration
+  backgroundImage: Background Image
+  blurValue: Blur Value
+  slogan: Slogan
+  sloganPlaceholder: MineAdmin · Exploring together to create exceptional value for companies and brands with technology · 2024
+  upload: Upload
+  cancel: Cancel
+  save: Save
+  description: MineAdmin 3.0 layout plugin, highly replicating the Bytedance engine layout

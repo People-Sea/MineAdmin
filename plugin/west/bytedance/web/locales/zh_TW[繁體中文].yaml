@@ -1,0 +1,12 @@
+bytedance:
+  configTips: 插件配置僅儲存在本地，更換設備會導致數據丟失！
+  layoutConfig: 佈局配置
+  title: 插件配置
+  backgroundImage: 背景圖片
+  blurValue: 模糊值
+  slogan: 口號標語
+  sloganPlaceholder: MineAdmin · 一起探索 運用技術，為公司和品牌創造卓越的價值 · 2024
+  upload: 上傳
+  cancel: 取消
+  save: 保存
+  description: MineAdmin 3.0佈局插件，高度複刻巨量引擎佈局
