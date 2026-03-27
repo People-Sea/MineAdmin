@@ -57,10 +57,11 @@ const useTenantWorkspaceStore = defineStore(
     async function loadTenants() {
       if (isTenantMode.value) {
         const info = userStore.getUserInfo()
+        currentTenantId.value = info?.tenant_id
+
         tenantOptionsList.value = info?.tenant_id
           ? [{ id: info.tenant_id, name: info.tenant_name, status: 1 }]
           : []
-        currentTenantId.value = info?.tenant_id
         return
       }
 

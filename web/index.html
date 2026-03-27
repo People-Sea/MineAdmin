@@ -33,9 +33,6 @@
     .app-name__loader {
       line-height: 5em; font-weight: bold; color: #efefef; font-size: 20px;
     }
-    .app-name__loader::before {
-      content: 'MineAdmin';
-    }
     .app-animate__loader {
       color: #fff;
       width: 6px;
@@ -65,7 +62,7 @@
   <body>
     <div id="app">
       <div class="app-loading">
-        <div class="app-name__loader"></div>
+        <div class="app-name__loader">%VITE_APP_TITLE%</div>
         <div class="app-animate__loader"></div>
         <div class="app-text__loader"></div>
       </div>

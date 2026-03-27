@@ -190,26 +190,60 @@ body:before {
   height: 26px;
 }
 
-.index_header-cc-all {
-  cursor: pointer;
+.index_header-identity {
+  cursor: default;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  padding: 0 5px;
-  height: 26px;
+  height: 28px;
   font-size: 12px;
   color: #03627a;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  border-radius: 32px;
+  gap: 8px;
+  max-width: 100%;
+  padding: 0 10px;
+  border-radius: 999px;
   border: 1px solid #f8fbfe;
   background: rgba(6, 214, 219, .2);
+  white-space: nowrap;
+}
+
+.index_header-identity-name {
+  min-width: 0;
+  max-width: 160px;
+  font-weight: 500;
+}
+
+.index_header-identity-divider {
+  flex-shrink: 0;
+  color: rgba(3, 98, 122, 0.45);
+}
+
+.index_header-identity-role {
+  flex-shrink: 0;
+  color: rgba(3, 98, 122, 0.82);
+  padding-right: 2px;
+}
+
+.dark .index_header-identity {
+  border-color: transparent;
+  background: rgb(24, 24, 24, var(--un-bg-opacity));
+}
+
+.dark .index_header-identity-name {
+  color: #d7f4fb;
+}
+
+.dark .index_header-identity-role {
+  color: rgba(215, 244, 251, 0.82);
+}
+
+.dark .index_header-identity-divider {
+  color: rgba(255, 255, 255, 0.24);
 }
 
 .mine-footer{

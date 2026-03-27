@@ -95,11 +95,17 @@ final class PassportController extends AbstractController
     )]
     public function getInfo(): Result
     {
+        $user = $this->currentUser->user();
+        $user?->loadMissing('tenant');
+
+        $data = Arr::only(
+            $user?->toArray() ?: [],
+            ['id', 'username', 'user_type', 'tenant_id', 'last_project_id', 'nickname', 'avatar', 'signed', 'backend_setting', 'phone', 'email']
+        );
+        $data['tenant_name'] = $user?->tenant?->name;
+
         return $this->success(
-            Arr::only(
-                $this->currentUser->user()?->toArray() ?: [],
-                ['id', 'username', 'user_type', 'tenant_id', 'tenant_name', 'last_project_id', 'nickname', 'avatar', 'signed', 'backend_setting', 'phone', 'email']
-            )
+            $data
         );
     }
 

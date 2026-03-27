@@ -19,29 +19,11 @@ export default defineComponent({
     return () => (
       <div class="flex items-center gap-x-2">
         <el-select
-          modelValue={workspaceStore.currentTenantId}
-          placeholder="选择租户"
-          filterable
-          size="small"
-          loading={loading.value}
-          class="!w-[180px]"
-          disabled={workspaceStore.isTenantMode}
-          onUpdate:modelValue={(value: number) => workspaceStore.changeTenant(value)}
-        >
-          {workspaceStore.tenantOptions.map(item => (
-            <el-option
-              key={item.id}
-              value={item.id}
-              label={item.status === 2 ? `${item.name}（停用）` : item.name}
-            />
-          ))}
-        </el-select>
-
-        <el-select
           modelValue={workspaceStore.currentProjectId}
           placeholder="选择项目"
           filterable
           size="small"
+          loading={loading.value}
           class="!w-[220px]"
           disabled={!workspaceStore.currentTenantId || workspaceStore.projectOptions.length === 0}
           onUpdate:modelValue={(value: number) => workspaceStore.changeProject(value)}
