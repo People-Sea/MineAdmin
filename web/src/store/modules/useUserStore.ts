@@ -14,6 +14,7 @@ import useHttp from '@/hooks/auto-imports/useHttp.ts'
 import * as PermissionApi from '~/base/api/permission.ts'
 import type { MenuVo, RoleVo } from '~/base/api/permission.ts'
 import { recursionGetKey } from '@/utils/recursionGetKey.ts'
+import { getAuthHomePage } from '@/utils/homePage.ts'
 
 export interface LoginParams {
   username: string
@@ -123,12 +124,8 @@ const useUserStore = defineStore(
       return userInfo.value?.user_type === 200
     }
 
-    function getHomePage() {
-      return setting.getSettings('welcomePage')
-    }
-
     function getHomePath(): string {
-      return getHomePage().path ?? '/'
+      return getAuthHomePage().path ?? '/'
     }
 
     async function login(data: { username: string, password: string, code?: string, [key: string]: any }) {
@@ -287,7 +284,6 @@ const useUserStore = defineStore(
       logout,
       getLoginScope,
       isTenantUser,
-      getHomePage,
       getHomePath,
       getDropdownMenu,
       getDropdownMenuState,
