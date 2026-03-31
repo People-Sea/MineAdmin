@@ -8,6 +8,7 @@
  * @Link   https://github.com/mineadmin
  */
 import type { Component } from 'vue'
+import TenantProjectSwitch from '@/components/tenant-project-switch'
 import MineUserBar from './user-bar.tsx'
 import type { MineToolbar } from '#/global'
 
@@ -33,6 +34,7 @@ export default defineComponent({
     }, { immediate: true, deep: true })
     return () => (
       <div class="right-bar">
+        <TenantProjectSwitch />
         {toolbars.value}
         <MineUserBar />
       </div>

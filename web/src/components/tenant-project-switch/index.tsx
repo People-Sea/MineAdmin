@@ -19,37 +19,41 @@ export default defineComponent({
     })
 
     return () => (
-      <div class="flex items-center gap-x-2">
-        <el-select
-          modelValue={workspaceStore.currentProjectId}
-          placeholder="选择项目"
-          filterable
-          size="small"
-          loading={loading.value}
-          class="!w-[220px]"
-          disabled={!workspaceStore.currentTenantId || workspaceStore.projectOptions.length === 0}
-          onUpdate:modelValue={async (value: number) => {
-            loading.value = true
-            try {
-              await workspaceStore.changeProject(value)
-            }
-            catch (error) {
-              msg.alertError(error instanceof Error ? error.message : String(error))
-            }
-            finally {
-              loading.value = false
-            }
-          }}
-        >
-          {workspaceStore.projectOptions.map(item => (
-            <el-option
-              key={item.id}
-              value={item.id}
-              label={item.is_default === 1 ? `${item.name}（主项目）` : item.name}
-            />
-          ))}
-        </el-select>
-      </div>
+      workspaceStore.isTenantMode
+        ? (
+            <div class="hidden items-center lg:flex">
+              <el-select
+                modelValue={workspaceStore.currentProjectId}
+                placeholder="选择项目"
+                filterable
+                size="small"
+                loading={loading.value}
+                class="!w-[180px]"
+                disabled={workspaceStore.projectOptions.length === 0}
+                onUpdate:modelValue={async (value: number) => {
+                  loading.value = true
+                  try {
+                    await workspaceStore.changeProject(value)
+                  }
+                  catch (error) {
+                    msg.alertError(error instanceof Error ? error.message : String(error))
+                  }
+                  finally {
+                    loading.value = false
+                  }
+                }}
+              >
+                {workspaceStore.projectOptions.map(item => (
+                  <el-option
+                    key={item.id}
+                    value={item.id}
+                    label={item.is_default === 1 ? `${item.name}（主项目）` : item.name}
+                  />
+                ))}
+              </el-select>
+            </div>
+          )
+        : null
     )
   },
 })

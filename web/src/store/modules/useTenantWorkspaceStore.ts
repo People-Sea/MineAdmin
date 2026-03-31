@@ -1,6 +1,5 @@
 import type { TenantOptionVo } from '~/base/api/tenant'
 import type { TenantProjectOptionVo } from '~/base/api/tenantProject'
-import { options as tenantOptions } from '~/base/api/tenant'
 import { options as tenantProjectOptions } from '~/base/api/tenantProject'
 
 const useTenantWorkspaceStore = defineStore(
@@ -26,34 +25,27 @@ const useTenantWorkspaceStore = defineStore(
     const currentTenantName = computed(() => currentTenant.value?.name ?? '')
     const currentProjectName = computed(() => currentProject.value?.name ?? '')
 
+    function resetWorkspace() {
+      tenantOptionsList.value = []
+      projectOptionsList.value = []
+      currentTenantId.value = undefined
+      currentProjectId.value = undefined
+    }
+
     function getStorageKey() {
       return isTenantMode.value ? 'tenant-workspace-tenant' : 'tenant-workspace-platform'
     }
 
     function restore() {
-      if (isTenantMode.value) {
-        currentTenantId.value = undefined
-        currentProjectId.value = undefined
-        return
-      }
-
-      const raw = localStorage.getItem(getStorageKey())
-      if (!raw) {
-        return
-      }
-
-      try {
-        const parsed = JSON.parse(raw)
-        currentTenantId.value = parsed.currentTenantId
-        currentProjectId.value = parsed.currentProjectId
-      }
-      catch {
-        currentTenantId.value = undefined
-        currentProjectId.value = undefined
-      }
+      currentTenantId.value = undefined
+      currentProjectId.value = undefined
     }
 
     function persist() {
+      if (!isTenantMode.value) {
+        return
+      }
+
       localStorage.setItem(getStorageKey(), JSON.stringify({
         currentTenantId: currentTenantId.value,
         currentProjectId: currentProjectId.value,
@@ -61,25 +53,25 @@ const useTenantWorkspaceStore = defineStore(
     }
 
     async function loadTenants() {
-      if (isTenantMode.value) {
-        const info = userStore.getUserInfo()
-        currentTenantId.value = info?.tenant_id
-
-        tenantOptionsList.value = info?.tenant_id
-          ? [{ id: info.tenant_id, name: info.tenant_name, status: 1 }]
-          : []
+      if (!isTenantMode.value) {
+        resetWorkspace()
         return
       }
 
-      const res = await tenantOptions()
-      tenantOptionsList.value = res.data ?? []
-
-      if (!tenantOptionsList.value.some(item => item.id === currentTenantId.value)) {
-        currentTenantId.value = tenantOptionsList.value[0]?.id
-      }
+      const info = userStore.getUserInfo()
+      currentTenantId.value = info?.tenant_id
+      tenantOptionsList.value = info?.tenant_id
+        ? [{ id: info.tenant_id, name: info.tenant_name, status: 1 }]
+        : []
     }
 
     async function loadProjects(tenantId = currentTenantId.value) {
+      if (!isTenantMode.value) {
+        projectOptionsList.value = []
+        currentProjectId.value = undefined
+        return
+      }
+
       if (!tenantId) {
         projectOptionsList.value = []
         currentProjectId.value = undefined
@@ -87,24 +79,19 @@ const useTenantWorkspaceStore = defineStore(
         return
       }
 
-      const res = await tenantProjectOptions(isTenantMode.value ? { status: 1 } : { tenant_id: tenantId })
+      const res = await tenantProjectOptions({ status: 1 })
 
       projectOptionsList.value = res.data ?? []
 
       const lastProjectId = userStore.getUserInfo()?.last_project_id
       const normalizedLastProjectId = lastProjectId ?? undefined
 
-      if (isTenantMode.value) {
-        currentProjectId.value = projectOptionsList.value.find(item => item.id === normalizedLastProjectId)?.id
-          ?? projectOptionsList.value.find(item => item.is_default === 1)?.id
-          ?? projectOptionsList.value[0]?.id
+      currentProjectId.value = projectOptionsList.value.find(item => item.id === normalizedLastProjectId)?.id
+        ?? projectOptionsList.value.find(item => item.is_default === 1)?.id
+        ?? projectOptionsList.value[0]?.id
 
-        if (currentProjectId.value !== normalizedLastProjectId) {
-          await userStore.setLastProjectId(currentProjectId.value, true)
-        }
-      }
-      else if (!projectOptionsList.value.some(item => item.id === currentProjectId.value)) {
-        currentProjectId.value = projectOptionsList.value[0]?.id
+      if (currentProjectId.value !== normalizedLastProjectId) {
+        await userStore.setLastProjectId(currentProjectId.value, true)
       }
 
       persist()
@@ -115,8 +102,7 @@ const useTenantWorkspaceStore = defineStore(
       if (scope.value !== currentScope) {
         scope.value = currentScope
         initialized.value = false
-        tenantOptionsList.value = []
-        projectOptionsList.value = []
+        resetWorkspace()
       }
 
       if (force) {
@@ -128,13 +114,18 @@ const useTenantWorkspaceStore = defineStore(
       }
 
       restore()
+      if (!isTenantMode.value) {
+        initialized.value = true
+        return
+      }
+
       await loadTenants()
       await loadProjects()
       initialized.value = true
     }
 
     async function changeTenant(tenantId?: number) {
-      if (isTenantMode.value) {
+      if (!isTenantMode.value) {
         return
       }
 
@@ -144,20 +135,30 @@ const useTenantWorkspaceStore = defineStore(
     }
 
     async function changeProject(projectId?: number) {
-      const nextProjectId = projectId ?? undefined
-      if (isTenantMode.value) {
-        await userStore.setLastProjectId(nextProjectId, true)
+      if (!isTenantMode.value) {
+        return
       }
+
+      const nextProjectId = projectId ?? undefined
+      await userStore.setLastProjectId(nextProjectId, true)
       currentProjectId.value = nextProjectId
       persist()
     }
 
     async function refreshTenants() {
+      if (!isTenantMode.value) {
+        return
+      }
+
       await loadTenants()
       await loadProjects()
     }
 
     async function refreshProjects() {
+      if (!isTenantMode.value) {
+        return
+      }
+
       await loadProjects()
     }
 

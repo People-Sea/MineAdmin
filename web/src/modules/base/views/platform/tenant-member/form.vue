@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import type { TenantMemberVo, TenantRoleOptionVo } from '~/base/api/tenantMember'
+import type { TenantOptionVo } from '~/base/api/tenant'
 import { create, roleOptions as roleOptionsApi, save } from '~/base/api/tenantMember'
 import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
@@ -11,6 +12,7 @@ const props = defineProps<{
   formType: 'add' | 'edit'
   data?: TenantMemberVo | null
   currentTenantId?: number
+  tenantOptions?: TenantOptionVo[]
 }>()
 
 const workspaceStore = useTenantWorkspaceStore()
@@ -24,6 +26,7 @@ const memberModel = ref<TenantMemberVo>({
 })
 
 const rules = computed<FormRules>(() => ({
+  tenant_id: [{ required: true, message: '请选择所属租户', trigger: 'change' }],
   name: [{ required: true, message: '请输入成员姓名', trigger: 'blur' }],
   username: [{ required: true, message: '请输入登录账号', trigger: 'blur' }],
   password: props.formType === 'add'
@@ -32,7 +35,12 @@ const rules = computed<FormRules>(() => ({
   role_id: [{ required: true, message: '请选择角色', trigger: 'change' }],
 }))
 
-const currentTenantName = computed(() => workspaceStore.currentTenantName || '未选择租户')
+const canEditTenant = computed(() => !workspaceStore.isTenantMode && props.formType === 'add')
+
+const currentTenantName = computed(() => {
+  const selectedTenant = props.tenantOptions?.find(item => item.id === memberModel.value.tenant_id)
+  return selectedTenant?.name || props.data?.tenant_name || workspaceStore.currentTenantName || '未选择租户'
+})
 
 function fillModel() {
   memberModel.value = {
@@ -90,7 +98,22 @@ defineExpose({
 
 <template>
   <el-form ref="memberFormRef" :model="memberModel" :rules="rules" label-width="100px">
-    <el-form-item label="当前租户">
+    <el-form-item v-if="canEditTenant" label="所属租户" prop="tenant_id">
+      <el-select
+        v-model="memberModel.tenant_id"
+        class="w-full"
+        filterable
+        placeholder="请选择所属租户"
+      >
+        <el-option
+          v-for="item in props.tenantOptions || []"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id || 0"
+        />
+      </el-select>
+    </el-form-item>
+    <el-form-item v-else label="所属租户">
       <el-input :model-value="currentTenantName" disabled />
     </el-form-item>
     <el-form-item label="成员姓名" prop="name">

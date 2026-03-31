@@ -14,7 +14,6 @@ import useHttp from '@/hooks/auto-imports/useHttp.ts'
 import * as PermissionApi from '~/base/api/permission.ts'
 import type { MenuVo, RoleVo } from '~/base/api/permission.ts'
 import { recursionGetKey } from '@/utils/recursionGetKey.ts'
-import { TENANT_HOME_PAGE } from '@/utils/homePage.ts'
 
 export interface LoginParams {
   username: string
@@ -125,7 +124,7 @@ const useUserStore = defineStore(
     }
 
     function getHomePage() {
-      return isTenantUser() ? TENANT_HOME_PAGE : setting.getSettings('welcomePage')
+      return setting.getSettings('welcomePage')
     }
 
     function getHomePath(): string {

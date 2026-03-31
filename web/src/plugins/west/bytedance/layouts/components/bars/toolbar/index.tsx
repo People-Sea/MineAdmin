@@ -9,7 +9,6 @@
  */
 import type { MineTabbar } from '#/global'
 import useTabCollection from '@/hooks/useTabCollection.ts'
-import TenantProjectSwitch from '@/components/tenant-project-switch'
 import Logo from '../../logo/index.tsx'
 import MineBreadcrumb from '../breadcrumb/index.tsx'
 import MineRightBar from './components/right-bar.tsx'
@@ -38,7 +37,6 @@ export default defineComponent({
           ) : (
             <>
               <div class="hidden items-center gap-x-4 lg:flex">
-                <TenantProjectSwitch />
                 {/** 仅在 isMixedLayout() 为 false 时渲染 m-dropdown */}
                 {tabCollection.value.length > 0 && (
                   <m-dropdown

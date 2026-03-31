@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
+import type { TenantOptionVo } from '~/base/api/tenant'
 import type { TenantProjectVo } from '~/base/api/tenantProject'
 import type { TenantMemberOptionVo } from '~/base/api/tenantMember'
 import { create, save } from '~/base/api/tenantProject'
@@ -13,6 +14,7 @@ const props = defineProps<{
   formType: 'add' | 'edit'
   data?: TenantProjectVo | null
   currentTenantId?: number
+  tenantOptions?: TenantOptionVo[]
 }>()
 
 const workspaceStore = useTenantWorkspaceStore()
@@ -25,10 +27,16 @@ const projectModel = ref<TenantProjectVo>({
 })
 
 const rules = computed<FormRules>(() => ({
+  tenant_id: [{ required: true, message: '请选择所属租户', trigger: 'change' }],
   name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
 }))
 
-const currentTenantName = computed(() => workspaceStore.currentTenantName || '未选择租户')
+const canEditTenant = computed(() => !workspaceStore.isTenantMode && props.formType === 'add')
+
+const currentTenantName = computed(() => {
+  const selectedTenant = props.tenantOptions?.find(item => item.id === projectModel.value.tenant_id)
+  return selectedTenant?.name || props.data?.tenant_name || workspaceStore.currentTenantName || '未选择租户'
+})
 
 async function loadMemberOptions(tenantId?: number) {
   if (!tenantId) {
@@ -55,11 +63,20 @@ function fillModel() {
       member_ids: props.data.member_ids ?? [],
     }
   }
-
-  loadMemberOptions(projectModel.value.tenant_id).catch(() => {})
 }
 
 watch(() => [props.formType, props.data, props.currentTenantId], fillModel, { immediate: true })
+watch(
+  () => projectModel.value.tenant_id,
+  (tenantId, previousTenantId) => {
+    if (props.formType === 'add' && tenantId !== previousTenantId) {
+      projectModel.value.member_ids = []
+    }
+
+    loadMemberOptions(tenantId).catch(() => {})
+  },
+  { immediate: true },
+)
 
 function add(): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -97,7 +114,22 @@ defineExpose({
     />
 
     <el-form ref="projectFormRef" :model="projectModel" :rules="rules" label-width="100px">
-      <el-form-item label="当前租户">
+      <el-form-item v-if="canEditTenant" label="所属租户" prop="tenant_id">
+        <el-select
+          v-model="projectModel.tenant_id"
+          class="w-full"
+          filterable
+          placeholder="请选择所属租户"
+        >
+          <el-option
+            v-for="item in props.tenantOptions || []"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id || 0"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item v-else label="所属租户">
         <el-input :model-value="currentTenantName" disabled />
       </el-form-item>
       <el-form-item label="项目名称" prop="name">

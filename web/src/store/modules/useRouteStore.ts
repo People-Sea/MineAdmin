@@ -59,9 +59,8 @@ const useRouteStore = defineStore(
     function getMineRootLayoutRoute(options: InitRouteOptions = {}): RouteRecordRaw {
       const welcomePage: SystemSettings.welcomePage = getAuthHomePage()
       const children: RouteRecordRaw[] = []
-      const userStore = useUserStore()
 
-      if (options.includeDefaultEntryRoutes !== false && !userStore.isTenantUser()) {
+      if (options.includeDefaultEntryRoutes !== false) {
         children.push(
           Object.assign(welcomeRoute, {
             name: welcomePage.name,

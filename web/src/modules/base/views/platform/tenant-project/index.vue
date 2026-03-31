@@ -3,6 +3,7 @@ import type { MaProTableExpose, MaProTableOptions, MaProTableSchema } from '@min
 import type { Ref } from 'vue'
 import type { TransType } from '@/hooks/auto-imports/useTrans.ts'
 import type { UseDialogExpose } from '@/hooks/useDialog.ts'
+import type { TenantOptionVo } from '~/base/api/tenant'
 import { ElTag } from 'element-plus'
 import MaDictSelect from '@/components/ma-dict-picker/ma-dict-select.vue'
 import useDialog from '@/hooks/useDialog.ts'
@@ -10,6 +11,7 @@ import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 import hasAuth from '@/utils/permission/hasAuth.ts'
 import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
+import { options as tenantOptionsApi } from '~/base/api/tenant'
 import { deleteByIds, page } from '~/base/api/tenantProject'
 import TenantProjectForm from './form.vue'
 
@@ -22,14 +24,42 @@ const i18n = useTrans() as TransType
 const t = i18n.globalTrans
 const msg = useMessage()
 const workspaceStore = useTenantWorkspaceStore()
+const tenantOptions = ref<TenantOptionVo[]>([])
+const tenantFilterId = ref<number | undefined>(undefined)
+const isTenantMode = computed(() => workspaceStore.isTenantMode)
+const activeTenantName = computed(() => {
+  if (isTenantMode.value) {
+    return workspaceStore.currentTenantName
+  }
+
+  return tenantOptions.value.find(item => item.id === tenantFilterId.value)?.name ?? ''
+})
+
+async function loadTenantOptions() {
+  if (isTenantMode.value) {
+    tenantOptions.value = workspaceStore.tenantOptions
+    return
+  }
+
+  const res = await tenantOptionsApi()
+  tenantOptions.value = res.data ?? []
+}
 
 onMounted(() => {
-  workspaceStore.init().then(() => {
+  if (isTenantMode.value) {
+    workspaceStore.init().then(async () => {
+      await loadTenantOptions()
+      proTableRef.value?.refresh()
+    })
+    return
+  }
+
+  loadTenantOptions().then(() => {
     proTableRef.value?.refresh()
   })
 })
 
-watch(() => workspaceStore.currentTenantId, () => {
+watch(() => isTenantMode.value ? workspaceStore.currentTenantId : tenantFilterId.value, () => {
   proTableRef.value?.refresh()
 })
 
@@ -44,7 +74,9 @@ const maDialog: UseDialogExpose = useDialog({
       if (response.code === ResultCode.SUCCESS) {
         msg.success(formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'))
         maDialog.close()
-        await workspaceStore.refreshProjects()
+        if (isTenantMode.value) {
+          await workspaceStore.refreshProjects()
+        }
         await proTableRef.value.refresh()
       }
       else {
@@ -64,9 +96,9 @@ const options = ref<MaProTableOptions>({
   adaptionOffsetBottom: 161,
   header: {
     mainTitle: () => '团队项目管理',
-    subTitle: () => workspaceStore.currentTenantName
-      ? `当前租户：${workspaceStore.currentTenantName}`
-      : '请先创建租户并在顶部选择当前租户',
+    subTitle: () => isTenantMode.value
+      ? (activeTenantName.value ? `当前租户：${activeTenantName.value}` : '当前账号未绑定租户')
+      : (activeTenantName.value ? `当前筛选租户：${activeTenantName.value}` : '默认显示全部租户项目，可按租户筛选查看'),
   },
   tableOptions: {
     on: {
@@ -86,12 +118,12 @@ const options = ref<MaProTableOptions>({
   requestOptions: {
     api: (params: any) => page({
       ...params,
-      tenant_id: workspaceStore.currentTenantId,
+      tenant_id: isTenantMode.value ? workspaceStore.currentTenantId : tenantFilterId.value,
     }),
   },
 })
 
-const schema = ref<MaProTableSchema>({
+const schema = computed<MaProTableSchema>(() => ({
   searchItems: [
     {
       label: () => '项目名称',
@@ -112,6 +144,9 @@ const schema = ref<MaProTableSchema>({
   tableColumns: [
     { type: 'selection', showOverflowTooltip: false, label: () => t('crud.selection') },
     { type: 'index' },
+    ...(!isTenantMode.value
+      ? [{ label: () => '所属租户', prop: 'tenant_name', minWidth: '180px' }]
+      : []),
     { label: () => '项目名称', prop: 'name', minWidth: '180px' },
     {
       label: () => '项目类型',
@@ -173,7 +208,9 @@ const schema = ref<MaProTableSchema>({
               const response = await deleteByIds([row.id])
               if (response.code === ResultCode.SUCCESS) {
                 msg.success(t('crud.delSuccess'))
-                await workspaceStore.refreshProjects()
+                if (isTenantMode.value) {
+                  await workspaceStore.refreshProjects()
+                }
                 await proxy.refresh()
               }
             },
@@ -182,7 +219,7 @@ const schema = ref<MaProTableSchema>({
       },
     },
   ],
-})
+}))
 
 async function handleDelete() {
   const ids = selections.value.map((item: any) => item.id)
@@ -190,7 +227,9 @@ async function handleDelete() {
   const response = await deleteByIds(ids)
   if (response.code === ResultCode.SUCCESS) {
     msg.success(t('crud.delSuccess'))
-    await workspaceStore.refreshProjects()
+    if (isTenantMode.value) {
+      await workspaceStore.refreshProjects()
+    }
     await proTableRef.value.refresh()
   }
 }
@@ -199,7 +238,7 @@ async function handleDelete() {
 <template>
   <div class="mine-layout pt-3">
     <el-alert
-      v-if="!workspaceStore.currentTenantId"
+      v-if="!isTenantMode && tenantOptions.length === 0"
       type="warning"
       :closable="false"
       title="当前没有可用租户，请先在平台租户管理中创建租户。"
@@ -211,7 +250,7 @@ async function handleDelete() {
         <el-button
           v-auth="['platform:tenant-project:save']"
           type="primary"
-          :disabled="!workspaceStore.currentTenantId"
+          :disabled="!isTenantMode && tenantOptions.length === 0"
           @click="() => {
             maDialog.setTitle(t('crud.add'))
             maDialog.open({ formType: 'add' })
@@ -222,6 +261,21 @@ async function handleDelete() {
       </template>
 
       <template #toolbarLeft>
+        <el-select
+          v-if="!isTenantMode"
+          v-model="tenantFilterId"
+          class="mr-3 !w-[240px]"
+          clearable
+          filterable
+          placeholder="全部租户"
+        >
+          <el-option
+            v-for="item in tenantOptions"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id || 0"
+          />
+        </el-select>
         <el-button
           v-auth="['platform:tenant-project:delete']"
           type="danger"
@@ -240,7 +294,8 @@ async function handleDelete() {
           ref="formRef"
           :form-type="formType"
           :data="data"
-          :current-tenant-id="workspaceStore.currentTenantId"
+          :current-tenant-id="isTenantMode ? workspaceStore.currentTenantId : tenantFilterId"
+          :tenant-options="tenantOptions"
         />
       </template>
     </component>
