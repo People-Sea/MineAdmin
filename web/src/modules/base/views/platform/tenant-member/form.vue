@@ -67,9 +67,19 @@ onMounted(async () => {
   roleOptions.value = res.data ?? []
 })
 
+function buildPayload() {
+  const payload = { ...memberModel.value }
+
+  if (props.formType === 'edit' || workspaceStore.isTenantMode) {
+    delete payload.tenant_id
+  }
+
+  return payload
+}
+
 function add(): Promise<any> {
   return new Promise((resolve, reject) => {
-    create(memberModel.value).then((res: any) => {
+    create(buildPayload()).then((res: any) => {
       res.code === ResultCode.SUCCESS ? resolve(res) : reject(res)
     }).catch(reject)
   })
@@ -77,7 +87,7 @@ function add(): Promise<any> {
 
 function edit(): Promise<any> {
   return new Promise((resolve, reject) => {
-    const payload = { ...memberModel.value }
+    const payload = buildPayload()
     if (!payload.password) {
       delete payload.password
     }

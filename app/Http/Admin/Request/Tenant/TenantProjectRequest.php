@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Request\Tenant;
 
+use App\Http\CurrentUser;
 use App\Http\Common\Request\Traits\NoAuthorizeTrait;
 use App\Model\TenantProject;
 use App\Schema\TenantProjectSchema;
@@ -27,7 +28,13 @@ final class TenantProjectRequest extends FormRequest
 
     public function rules(): array
     {
+        $currentUser = CurrentUser::ctxUser();
+        $isTenantUser = $currentUser?->isTenantUser() ?? false;
         $tenantId = (int) $this->input('tenant_id');
+        if ($this->isMethod('POST') && $tenantId === 0 && $isTenantUser) {
+            $tenantId = (int) ($currentUser?->tenant_id ?? 0);
+        }
+
         if ($this->isMethod('PUT') && $tenantId === 0) {
             /** @var null|TenantProject $project */
             $project = TenantProject::query()->find($this->route('id'));
@@ -40,7 +47,9 @@ final class TenantProjectRequest extends FormRequest
         }
 
         return [
-            'tenant_id' => 'required|integer|exists:tenant,id',
+            'tenant_id' => $this->isMethod('POST') && ! $isTenantUser
+                ? 'required|integer|exists:tenant,id'
+                : 'sometimes|integer|exists:tenant,id',
             'name' => [
                 'required',
                 'string',

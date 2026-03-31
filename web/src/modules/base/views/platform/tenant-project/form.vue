@@ -39,13 +39,27 @@ const currentTenantName = computed(() => {
 })
 
 async function loadMemberOptions(tenantId?: number) {
-  if (!tenantId) {
+  if (!tenantId && !workspaceStore.isTenantMode) {
     memberOptions.value = []
     return
   }
 
-  const res = await memberOptionsApi({ tenant_id: tenantId, status: 1 })
+  const query = workspaceStore.isTenantMode
+    ? { status: 1 }
+    : { tenant_id: tenantId, status: 1 }
+
+  const res = await memberOptionsApi(query)
   memberOptions.value = res.data ?? []
+}
+
+function buildPayload() {
+  const payload = { ...projectModel.value }
+
+  if (props.formType === 'edit' || workspaceStore.isTenantMode) {
+    delete payload.tenant_id
+  }
+
+  return payload
 }
 
 function fillModel() {
@@ -80,7 +94,7 @@ watch(
 
 function add(): Promise<any> {
   return new Promise((resolve, reject) => {
-    create(projectModel.value).then((res: any) => {
+    create(buildPayload()).then((res: any) => {
       res.code === ResultCode.SUCCESS ? resolve(res) : reject(res)
     }).catch(reject)
   })
@@ -88,7 +102,7 @@ function add(): Promise<any> {
 
 function edit(): Promise<any> {
   return new Promise((resolve, reject) => {
-    save(projectModel.value.id as number, projectModel.value).then((res: any) => {
+    save(projectModel.value.id as number, buildPayload()).then((res: any) => {
       res.code === ResultCode.SUCCESS ? resolve(res) : reject(res)
     }).catch(reject)
   })

@@ -115,7 +115,7 @@ const options = ref<MaProTableOptions>({
   requestOptions: {
     api: (params: any) => page({
       ...params,
-      tenant_id: isTenantMode.value ? workspaceStore.currentTenantId : tenantFilterId.value,
+      ...(!isTenantMode.value && tenantFilterId.value ? { tenant_id: tenantFilterId.value } : {}),
     }),
   },
 })

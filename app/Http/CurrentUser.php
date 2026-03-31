@@ -41,6 +41,7 @@ final class CurrentUser
             throw new BusinessException(ResultCode::UNAUTHORIZED, trans('jwt.unauthorized'));
         }
         $this->ensureTenantAccessible($user);
+        $this->userService->syncLastProjectId($user);
 
         Context::set('current_user', $user);
         return $user;
@@ -89,7 +90,7 @@ final class CurrentUser
             $permissions = $permissions
                 ->filter(static function ($name) use ($allowedNames, $allowedPrefixes) {
                     $name = (string) $name;
-                    if (in_array($name, $allowedNames, true)) {
+                    if (\in_array($name, $allowedNames, true)) {
                         return true;
                     }
 

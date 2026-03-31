@@ -107,8 +107,13 @@ final class TenantMemberService extends IService
                 unset($data['password']);
             }
 
-            if (isset($data['tenant_id'])) {
-                $data['tenant_id'] = $this->resolveTenantId($data['tenant_id']);
+            if (array_key_exists('tenant_id', $data)) {
+                $tenantId = $this->resolveTenantId((int) $data['tenant_id']);
+                if ($tenantId !== (int) $member->tenant_id) {
+                    throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '成员不支持跨租户迁移，请在目标租户重新创建');
+                }
+
+                unset($data['tenant_id']);
             }
             if (isset($data['name'])) {
                 $data['nickname'] = $data['name'];

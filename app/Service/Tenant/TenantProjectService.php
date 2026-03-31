@@ -67,14 +67,21 @@ final class TenantProjectService extends IService
             /** @var TenantProject $project */
             $project = $this->findProjectOrFail((int) $id);
 
-            $memberIds = $data['member_ids'] ?? [];
+            $memberIds = $data['member_ids'] ?? null;
             unset($data['member_ids']);
-            if (isset($data['tenant_id'])) {
-                $data['tenant_id'] = $this->resolveTenantId($data['tenant_id']);
+            if (array_key_exists('tenant_id', $data)) {
+                $tenantId = $this->resolveTenantId((int) $data['tenant_id']);
+                if ($tenantId !== (int) $project->tenant_id) {
+                    throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '项目不支持跨租户变更，请在目标租户重新创建');
+                }
+
+                unset($data['tenant_id']);
             }
 
             $project->fill($data)->save();
-            $this->syncMembers($project, $memberIds, (int) ($data['updated_by'] ?? $data['created_by'] ?? 0));
+            if (is_array($memberIds)) {
+                $this->syncMembers($project, $memberIds, (int) ($data['updated_by'] ?? $data['created_by'] ?? 0));
+            }
             return $project;
         });
     }

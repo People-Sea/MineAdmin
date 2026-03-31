@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Http\Admin\Controller\AttachmentController;
 use App\Http\Admin\Controller\Logstash\UserLoginLogController;
 use App\Http\Admin\Controller\Logstash\UserOperationLogController;
 use App\Http\Admin\Controller\PassportController;
@@ -19,7 +18,6 @@ return [
     'allowed_controllers' => [
         PassportController::class,
         PermissionController::class,
-        AttachmentController::class,
         UserLoginLogController::class,
         UserOperationLogController::class,
         TenantMemberController::class,

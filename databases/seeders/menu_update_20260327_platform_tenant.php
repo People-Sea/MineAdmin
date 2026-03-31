@@ -242,6 +242,13 @@ class MenuUpdate20260327PlatformTenant extends Seeder
             'platform:tenant-project:save',
             'platform:tenant-project:update',
             'platform:tenant-project:delete',
+            'log',
+            'log:userLogin',
+            'log:userLogin:list',
+            'log:userLogin:delete',
+            'log:userOperation',
+            'log:userOperation:list',
+            'log:userOperation:delete',
         ]));
 
         $optimizer->menus()->sync($this->menuIds([

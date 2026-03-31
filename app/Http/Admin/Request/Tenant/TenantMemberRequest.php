@@ -6,6 +6,7 @@ namespace App\Http\Admin\Request\Tenant;
 
 use App\Http\Common\Request\Traits\HttpMethodTrait;
 use App\Http\Common\Request\Traits\NoAuthorizeTrait;
+use App\Http\CurrentUser;
 use App\Model\Permission\User;
 use App\Schema\TenantMemberSchema;
 use Hyperf\Validation\Request\FormRequest;
@@ -33,6 +34,7 @@ final class TenantMemberRequest extends FormRequest
 
     public function rules(): array
     {
+        $isTenantUser = CurrentUser::ctxUser()?->isTenantUser() ?? false;
         $tenantId = (int) $this->input('tenant_id');
         if ($this->isUpdate() && $tenantId === 0) {
             /** @var null|User $member */
@@ -46,7 +48,9 @@ final class TenantMemberRequest extends FormRequest
         }
 
         $rules = [
-            'tenant_id' => 'required|integer|exists:tenant,id',
+            'tenant_id' => $this->isCreate() && ! $isTenantUser
+                ? 'required|integer|exists:tenant,id'
+                : 'sometimes|integer|exists:tenant,id',
             'name' => 'required|string|max:30',
             'username' => [
                 'required',

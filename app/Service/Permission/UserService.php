@@ -92,6 +92,10 @@ final class UserService extends IService
         }
 
         $projectId = $projectId !== null ? (int) $projectId : null;
+        if ($projectId === null) {
+            $projectId = $this->resolveAccessibleProjectId($user);
+        }
+
         if ($projectId !== null && ! $this->projectAccessible($user, $projectId)) {
             throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '当前项目不存在、已停用或无权访问');
         }
@@ -111,7 +115,12 @@ final class UserService extends IService
             return;
         }
 
-        $user->last_project_id = $this->resolveAccessibleProjectId($user, $excludeProjectId);
+        $nextProjectId = $this->resolveAccessibleProjectId($user, $excludeProjectId);
+        if ((int) ($user->last_project_id ?? 0) === (int) ($nextProjectId ?? 0)) {
+            return;
+        }
+
+        $user->last_project_id = $nextProjectId;
         $user->save();
     }
 
