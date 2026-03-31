@@ -90,7 +90,7 @@ final class TenantMemberRepository extends IRepository
         return $items->map(static function (User $item) use ($assignableRoleCodes) {
             $projects = $item->projects ?? collect();
             $roleEntity = ($item->roles ?? collect())
-                ->first(static fn ($role) => in_array($role->code, $assignableRoleCodes, true));
+                ->first(static fn ($role) => \in_array($role->code, $assignableRoleCodes, true));
 
             $item->setAttribute('tenant_name', $item->tenant?->name ?? '');
             $item->setAttribute('name', $item->nickname);

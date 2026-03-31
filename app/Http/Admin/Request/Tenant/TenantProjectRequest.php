@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Request\Tenant;
 
-use App\Http\CurrentUser;
 use App\Http\Common\Request\Traits\NoAuthorizeTrait;
+use App\Http\CurrentUser;
 use App\Model\TenantProject;
 use App\Schema\TenantProjectSchema;
 use Hyperf\Validation\Request\FormRequest;

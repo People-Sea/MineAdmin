@@ -92,7 +92,7 @@ final class PermissionMiddleware implements MiddlewareInterface
 
         [$controller] = $parseResult;
         $allowedControllers = array_map('strval', (array) config('tenant.allowed_controllers', []));
-        if (in_array($controller, $allowedControllers, true)) {
+        if (\in_array($controller, $allowedControllers, true)) {
             return;
         }
 

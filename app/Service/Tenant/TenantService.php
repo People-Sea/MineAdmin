@@ -102,7 +102,7 @@ final class TenantService extends IService
     public function deleteById(mixed $id): int
     {
         return Db::transaction(function () use ($id) {
-            $ids = is_array($id) ? $id : [$id];
+            $ids = \is_array($id) ? $id : [$id];
 
             TenantProject::query()->whereIn('tenant_id', $ids)->get()->each(static function (TenantProject $project) {
                 $project->delete();
@@ -113,8 +113,8 @@ final class TenantService extends IService
                 ->whereIn('tenant_id', $ids)
                 ->get()
                 ->each(static function (User $member) {
-                $member->delete();
-            });
+                    $member->delete();
+                });
 
             return parent::deleteById($ids);
         });

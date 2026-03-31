@@ -7,8 +7,8 @@ namespace App\Service;
 use App\Exception\BusinessException;
 use App\Exception\JwtInBlackException;
 use App\Http\Common\ResultCode;
-use App\Model\Enums\User\Type;
 use App\Model\Enums\User\Status;
+use App\Model\Enums\User\Type;
 use App\Model\Permission\User;
 use App\Repository\Permission\UserRepository;
 use Lcobucci\JWT\Token\RegisteredClaims;
@@ -35,7 +35,7 @@ final class PassportService extends IService implements CheckTokenInterface
     /**
      * @return array<string,int|string>
      */
-    public function login(string $username, string $password, Type|null $userType = null, string $ip = '0.0.0.0', string $browser = 'unknown', string $os = 'unknown'): array
+    public function login(string $username, string $password, ?Type $userType = null, string $ip = '0.0.0.0', string $browser = 'unknown', string $os = 'unknown'): array
     {
         $user = $userType === null
             ? $this->repository->findByUsername($username)

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * @Date: 2024-10-23 11:58:44
  * @LastEditors: west_ng 457395070@qq.com
@@ -7,14 +8,6 @@
  */
 
 declare(strict_types=1);
-/**
- * This file is part of MineAdmin.
- *
- * @link     https://www.mineadmin.com
- * @document https://doc.mineadmin.com
- * @contact  root@imoi.cn
- * @license  https://github.com/mineadmin/MineAdmin/blob/master/LICENSE
- */
 
 namespace Plugin\West\Bytedance;
 

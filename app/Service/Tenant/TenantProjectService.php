@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service\Tenant;
 
 use App\Exception\BusinessException;
-use App\Http\CurrentUser;
 use App\Http\Common\ResultCode;
+use App\Http\CurrentUser;
 use App\Model\Enums\User\Type;
 use App\Model\Permission\User;
 use App\Model\TenantProject;
@@ -69,7 +69,7 @@ final class TenantProjectService extends IService
 
             $memberIds = $data['member_ids'] ?? null;
             unset($data['member_ids']);
-            if (array_key_exists('tenant_id', $data)) {
+            if (\array_key_exists('tenant_id', $data)) {
                 $tenantId = $this->resolveTenantId((int) $data['tenant_id']);
                 if ($tenantId !== (int) $project->tenant_id) {
                     throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '项目不支持跨租户变更，请在目标租户重新创建');
@@ -79,7 +79,7 @@ final class TenantProjectService extends IService
             }
 
             $project->fill($data)->save();
-            if (is_array($memberIds)) {
+            if (\is_array($memberIds)) {
                 $this->syncMembers($project, $memberIds, (int) ($data['updated_by'] ?? $data['created_by'] ?? 0));
             }
             return $project;
@@ -90,7 +90,7 @@ final class TenantProjectService extends IService
     {
         return Db::transaction(function () use ($id) {
             $this->ensureTenantAdminCanManage();
-            $ids = is_array($id) ? $id : [$id];
+            $ids = \is_array($id) ? $id : [$id];
             $projects = TenantProject::query()
                 ->whereIn('id', $ids)
                 ->when($this->currentUser->isTenantUser(), function ($query) {
@@ -114,7 +114,7 @@ final class TenantProjectService extends IService
                 $project->delete();
             });
 
-            return count($ids);
+            return \count($ids);
         });
     }
 
@@ -139,7 +139,7 @@ final class TenantProjectService extends IService
             ->map(static fn ($id) => (int) $id)
             ->all();
 
-        if (count($validIds) !== count(array_unique($memberIds))) {
+        if (\count($validIds) !== \count(array_unique($memberIds))) {
             throw new BusinessException(ResultCode::UNPROCESSABLE_ENTITY, '存在不属于当前租户的成员，无法加入项目');
         }
 
@@ -175,7 +175,7 @@ final class TenantProjectService extends IService
         }
     }
 
-    private function resolveTenantId(int|null $tenantId): int
+    private function resolveTenantId(?int $tenantId): int
     {
         if ($this->currentUser->isTenantUser()) {
             return $this->currentUser->tenantId();

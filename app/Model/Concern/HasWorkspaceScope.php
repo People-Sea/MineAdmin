@@ -31,7 +31,7 @@ trait HasWorkspaceScope
             return null;
         }
 
-        if (array_key_exists($table, static::$workspaceProjectColumnCache)) {
+        if (\array_key_exists($table, static::$workspaceProjectColumnCache)) {
             return static::$workspaceProjectColumnCache[$table];
         }
 
