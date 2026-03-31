@@ -16,6 +16,7 @@
 - `tenant`
 - `platform_app`
 - `tenant_app_assignment`
+- `tenant_auth_grant`
 - `tenant_project`
 - `user`（复用现有表，补 `tenant_id`、`last_project_id`）
 - `tenant_project_user`
@@ -29,8 +30,8 @@
 - `project_material`
 - `project_template`
 
-### 2.4 认证与执行身份
-- `auth_session`
+### 2.4 凭证获取与执行身份
+- `user_token_session`
 - `user_token`
 
 ### 2.5 任务中心
@@ -98,7 +99,110 @@ async_task
 - `project_id` 只在项目级任务中必填
 - 广告任务除了 `scope_type=project`，仍保留显式 `project_id` 字段，便于项目上下文查询
 
-## 5. 主表：`async_task`
+## 5. 广告主账号授权来源设计
+### 5.1 当前产品规则
+- 租户侧不单独暴露“管家账号 / 授权主体”页面。
+- 用户在 `投放账号管理 -> 广告主账号` 中直接发起授权、拉取并选择广告主账号。
+- 系统内部保留授权来源记录，用于 token 刷新、账号同步和审计追踪。
+
+### 5.2 `tenant_auth_grant`
+这张表保存租户使用平台应用发起的一次 OAuth 授权来源记录。
+
+建议字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigint | 主键 |
+| `tenant_id` | bigint | 租户 ID |
+| `platform_app_id` | bigint | 使用的平台应用 ID |
+| `grant_type` | varchar(32) | 授权身份类型，如 `advertiser / agency / bm / service_provider` |
+| `source_account_id` | varchar(64) | 腾讯侧授权来源账号 ID |
+| `source_account_name` | varchar(255) nullable | 腾讯侧授权来源显示名 |
+| `grant_role` | varchar(64) nullable | 本次授权人的角色信息 |
+| `scope_snapshot` | json nullable | 本次授权可访问范围快照 |
+| `access_token_ciphertext` | text | 加密后的 access token |
+| `refresh_token_ciphertext` | text | 加密后的 refresh token |
+| `access_token_expires_at` | datetime nullable | access token 过期时间 |
+| `refresh_token_expires_at` | datetime nullable | refresh token 过期时间 |
+| `status` | varchar(32) | 授权记录状态 |
+| `last_synced_at` | datetime nullable | 最近一次同步广告主账号时间 |
+| `created_at` | datetime | 创建时间 |
+| `updated_at` | datetime | 更新时间 |
+
+建议状态：
+
+- `active`
+- `expired`
+- `revoked`
+- `sync_failed`
+
+说明：
+
+- 这张表是技术层隐藏模型，不单独作为产品菜单暴露。
+- `tenant_ad_account` 需要保存 `tenant_auth_grant_id`，用于追踪账号来源。
+- 后续刷新 token、重新同步账号列表、定位授权失效影响范围，都依赖这张表。
+
+### 5.3 `userToken` 获取规则
+- 腾讯扫码跳转当前只用于获取执行凭证，不承担本地账号登录或权限识别。
+- 回调核心字段按 `userToken`、过期时间和可选 `wechat_nickname` 设计，当前默认按 15 天有效期处理。
+- `wechat_nickname` 只用于展示和审计，不作为唯一身份字段。
+- 本地权限仍由 `tenant_id + project_id + 广告主账号授权` 决定。
+- `user_token` 按本地员工维度存储，不按项目维度存储。
+
+### 5.4 `user_token_session`
+这张表只用于承接一次扫码跳转和回调绑定，不作为长期身份表。
+
+建议字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigint | 主键 |
+| `tenant_id` | bigint | 租户 ID |
+| `user_id` | bigint | 发起扫码的本地员工 ID |
+| `state` | varchar(128) | 回调防串单标识 |
+| `status` | varchar(32) | 会话状态 |
+| `redirect_url` | varchar(500) nullable | 扫码完成后的前端回跳地址 |
+| `callback_payload` | json nullable | 回调原始参数快照 |
+| `expired_at` | datetime | 会话过期时间 |
+| `completed_at` | datetime nullable | 完成时间 |
+| `created_at` | datetime | 创建时间 |
+| `updated_at` | datetime | 更新时间 |
+
+建议状态：
+
+- `pending`
+- `callback_received`
+- `completed`
+- `expired`
+- `failed`
+
+### 5.5 `user_token`
+这张表保存本地员工当前可用的执行凭证记录。
+
+建议字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigint | 主键 |
+| `tenant_id` | bigint | 租户 ID |
+| `user_id` | bigint | 执行凭证所属本地员工 ID |
+| `user_token_session_id` | bigint nullable | 来源会话 ID |
+| `token_ciphertext` | text | 加密后的 `userToken` |
+| `wechat_nickname` | varchar(255) nullable | 微信昵称，仅展示和审计使用 |
+| `status` | varchar(32) | 凭证状态 |
+| `granted_at` | datetime | 获取时间 |
+| `expires_at` | datetime | 过期时间，当前默认按 15 天有效期处理 |
+| `last_used_at` | datetime nullable | 最近使用时间 |
+| `created_at` | datetime | 创建时间 |
+| `updated_at` | datetime | 更新时间 |
+
+建议状态：
+
+- `active`
+- `expired`
+- `revoked`
+
+## 6. 主表：`async_task`
 主表只放公共查询、状态、归属、执行链路字段。
 
 建议字段：
@@ -116,8 +220,8 @@ async_task
 | `source_module` | varchar(64) | 来源模块，如 `task_center`、`report`、`ad_account` |
 | `status` | varchar(32) | 任务状态 |
 | `operator_user_id` | bigint | 发起人 |
-| `auth_user_id` | bigint nullable | 实际扫码执行人，导出任务可为空 |
-| `auth_session_id` | bigint nullable | 认证会话 ID |
+| `executor_user_id` | bigint nullable | 提供本次执行凭证的本地员工，导出任务可为空 |
+| `user_token_session_id` | bigint nullable | 凭证获取会话 ID |
 | `user_token_id` | bigint nullable | 执行凭证 ID |
 | `total_count` | int default 0 | 总执行数 |
 | `success_count` | int default 0 | 成功数 |
@@ -157,7 +261,7 @@ async_task
 - `failed`
 - `canceled`
 
-## 6. 执行项表：`async_task_item`
+## 7. 执行项表：`async_task_item`
 不是所有任务都要拆执行项。
 
 建议只在以下场景启用：
@@ -196,7 +300,7 @@ async_task
 - `failed`
 - `skipped`
 
-## 7. 任务日志表：`async_task_log`
+## 8. 任务日志表：`async_task_log`
 任务日志统一承接任务状态变化、执行摘要、补偿记录，不和业务操作日志混在一起。
 
 建议字段：
@@ -215,7 +319,7 @@ async_task
 | `operator_user_id` | bigint nullable | 操作人 |
 | `created_at` | datetime | 创建时间 |
 
-## 8. 广告任务明细：`ad_batch_task_detail`
+## 9. 广告任务明细：`ad_batch_task_detail`
 这张表只服务广告批量任务，不让广告业务字段污染主表。
 
 建议字段：
@@ -238,7 +342,7 @@ async_task
 - MVP 阶段优先保留快照，不急着把所有广告参数拆成很多列
 - 真正高频筛选字段仍应回到主表或业务实体表做
 
-## 9. 导出任务明细：`export_task_detail`
+## 10. 导出任务明细：`export_task_detail`
 所有导出都走这张明细表，不直接沿用页面同步导出流程。
 
 建议字段：
@@ -270,8 +374,8 @@ async_task
 - `material_export`
 - `member_export`
 
-## 10. 状态流转建议
-### 10.1 广告批量任务
+## 11. 状态流转建议
+### 11.1 广告批量任务
 ```text
 pending
 -> waiting_auth
@@ -280,7 +384,7 @@ pending
 -> success / partial_success / failed / canceled
 ```
 
-### 10.2 导出任务
+### 11.2 导出任务
 ```text
 pending
 -> queued
@@ -294,7 +398,7 @@ pending
 - `failed` 必须回填 `status_reason`
 - `partial_success` 仅广告类任务使用
 
-## 11. 与 MineAdmin 导出能力的关系
+## 12. 与 MineAdmin 导出能力的关系
 MVP 阶段，导出能力统一由任务中心承接。
 
 当前接入方式：
@@ -309,7 +413,7 @@ MVP 阶段，导出能力统一由任务中心承接。
 - 大文件导出不会阻塞请求
 - 后续加导出审计、导出过期、导出通知都更自然
 
-## 12. 实施顺序建议
+## 13. 实施顺序建议
 如果要尽快先落地导出任务中心，建议顺序如下：
 
 1. 先建 `async_task`
