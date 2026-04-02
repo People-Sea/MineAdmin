@@ -36,7 +36,7 @@ export default defineComponent({
                     await workspaceStore.changeProject(value)
                   }
                   catch (error) {
-                    msg.alertError(error instanceof Error ? error.message : String(error))
+                    msg.alertError(error)
                   }
                   finally {
                     loading.value = false

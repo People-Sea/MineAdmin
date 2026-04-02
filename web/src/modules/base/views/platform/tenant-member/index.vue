@@ -7,6 +7,7 @@ import type { TenantOptionVo } from '~/base/api/tenant'
 import { ElTag } from 'element-plus'
 import MaDictSelect from '@/components/ma-dict-picker/ma-dict-select.vue'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 import hasAuth from '@/utils/permission/hasAuth.ts'
@@ -23,6 +24,7 @@ const selections = ref<any[]>([])
 const i18n = useTrans() as TransType
 const t = i18n.globalTrans
 const msg = useMessage()
+const submitDialog = useDialogSubmit()
 const workspaceStore = useTenantWorkspaceStore()
 const tenantOptions = ref<TenantOptionVo[]>([])
 const tenantFilterId = ref<number | undefined>(undefined)
@@ -68,20 +70,15 @@ const maDialog: UseDialogExpose = useDialog({
   ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
     try {
-      const elForm = formRef.value.maForm.getElFormRef()
-      await elForm.validate()
-      const response = formType === 'add' ? await formRef.value.add() : await formRef.value.edit()
-      if (response.code === ResultCode.SUCCESS) {
-        msg.success(formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'))
-        maDialog.close()
-        await proTableRef.value.refresh()
-      }
-      else {
-        msg.error(response.message)
-      }
-    }
-    catch (error) {
-      msg.alertError(error instanceof Error ? error.message : String(error))
+      await submitDialog({
+        validate: () => formRef.value.maForm.getElFormRef().validate(),
+        submit: () => formType === 'add' ? formRef.value.add() : formRef.value.edit(),
+        successMessage: formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'),
+        close: maDialog.close,
+        onSuccess: async () => {
+          await proTableRef.value.refresh()
+        },
+      })
     }
     finally {
       okLoadingState(false)

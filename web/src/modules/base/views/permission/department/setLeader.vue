@@ -19,6 +19,7 @@ import type { MaFormExpose } from '@mineadmin/form'
 import type { TransType } from '@/hooks/auto-imports/useTrans.ts'
 import type { UseDialogExpose } from '@/hooks/useDialog.ts'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import hasAuth from '@/utils/permission/hasAuth.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
@@ -41,6 +42,7 @@ const leaderModel = ref<LeaderVo>({
 })
 
 const msg = useMessage()
+const submitDialog = useDialogSubmit()
 
 function showBtn(auth: string | string[]) {
   return hasAuth(auth)
@@ -49,39 +51,30 @@ function showBtn(auth: string | string[]) {
 // 弹窗配置
 const maDialog: UseDialogExpose = useDialog({
   lgWidth: '550px',
-  ok: ({ formType }, okLoadingState: (state: boolean) => void) => {
+  ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
-    if (['add', 'edit'].includes(formType)) {
-      const elForm = leaderForm.value?.getElFormRef()
-      // 验证通过后
-      elForm?.validate?.().then(() => {
-        leaderModel.value.user_id = leaderModel.value.users.map((item: any) => item.id)
-        delete leaderModel.value.users
-        switch (formType) {
-          // 新增
-          case 'add':
-            create(leaderModel.value).then((res: any) => {
-              res.code === ResultCode.SUCCESS ? msg.success(t('crud.createSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value?.refresh()
-            }).catch((err: any) => {
-              msg.alertError(err)
-            })
-            break
-          // 修改
-          case 'edit':
-            save(leaderModel.value?.id as number, leaderModel.value).then((res: any) => {
-              res.code === 200 ? msg.success(t('crud.updateSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value?.refresh()
-            }).catch((err: any) => {
-              msg.alertError(err)
-            })
-            break
-        }
-      }).catch()
+    try {
+      if (['add', 'edit'].includes(formType)) {
+        await submitDialog({
+          validate: async () => {
+            await leaderForm.value?.getElFormRef()?.validate?.()
+            leaderModel.value.user_id = leaderModel.value.users.map((item: any) => item.id)
+            delete leaderModel.value.users
+          },
+          submit: () => formType === 'add'
+            ? create(leaderModel.value)
+            : save(leaderModel.value?.id as number, leaderModel.value),
+          successMessage: formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'),
+          close: maDialog.close,
+          onSuccess: async () => {
+            await proTableRef.value?.refresh()
+          },
+        })
+      }
     }
-    okLoadingState(false)
+    finally {
+      okLoadingState(false)
+    }
   },
 })
 

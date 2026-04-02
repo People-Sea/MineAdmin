@@ -8,6 +8,7 @@ import { deleteByIds, page } from '~/base/api/tenant'
 import getSearchItems from './data/getSearchItems.tsx'
 import getTableColumns from './data/getTableColumns.tsx'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 import useTenantWorkspaceStore from '@/store/modules/useTenantWorkspaceStore.ts'
@@ -22,6 +23,7 @@ const selections = ref<any[]>([])
 const i18n = useTrans() as TransType
 const t = i18n.globalTrans
 const msg = useMessage()
+const submitDialog = useDialogSubmit()
 const workspaceStore = useTenantWorkspaceStore()
 const pageTitle = '租户管理'
 const pageSubTitle = '创建租户时自动生成主项目和首个租户管理员。'
@@ -31,21 +33,16 @@ const maDialog: UseDialogExpose = useDialog({
   ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
     try {
-      const elForm = formRef.value.maForm.getElFormRef()
-      await elForm.validate()
-      const response = formType === 'add' ? await formRef.value.add() : await formRef.value.edit()
-      if (response.code === ResultCode.SUCCESS) {
-        msg.success(formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'))
-        maDialog.close()
-        await workspaceStore.refreshTenants()
-        await proTableRef.value.refresh()
-      }
-      else {
-        msg.error(response.message)
-      }
-    }
-    catch (error) {
-      msg.alertError(error instanceof Error ? error.message : String(error))
+      await submitDialog({
+        validate: () => formRef.value.maForm.getElFormRef().validate(),
+        submit: () => formType === 'add' ? formRef.value.add() : formRef.value.edit(),
+        successMessage: formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'),
+        close: maDialog.close,
+        onSuccess: async () => {
+          await workspaceStore.refreshTenants()
+          await proTableRef.value.refresh()
+        },
+      })
     }
     finally {
       okLoadingState(false)

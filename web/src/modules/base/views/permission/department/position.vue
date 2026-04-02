@@ -18,6 +18,7 @@ import type { MaFormExpose } from '@mineadmin/form'
 import type { TransType } from '@/hooks/auto-imports/useTrans.ts'
 import type { UseDialogExpose } from '@/hooks/useDialog.ts'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import hasAuth from '@/utils/permission/hasAuth.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
@@ -43,6 +44,7 @@ const postModel = ref<PositionVo>({
 })
 
 const msg = useMessage()
+const submitDialog = useDialogSubmit()
 
 function showBtn(auth: string | string[]) {
   return hasAuth(auth)
@@ -51,46 +53,46 @@ function showBtn(auth: string | string[]) {
 // 弹窗配置
 const maDialog: UseDialogExpose = useDialog({
   lgWidth: '550px',
-  ok: ({ formType }, okLoadingState: (state: boolean) => void) => {
+  ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
-    if (['add', 'edit'].includes(formType)) {
-      const elForm = positionForm.value?.getElFormRef()
-      // 验证通过后
-      elForm?.validate?.().then(() => {
-        switch (formType) {
-          // 新增
-          case 'add':
-            create(postModel.value).then((res: any) => {
-              res.code === ResultCode.SUCCESS ? msg.success(t('crud.createSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value?.refresh()
-            })
-            break
-          // 修改
-          case 'edit':
-            save(postModel.value?.id as number, postModel.value).then((res: any) => {
-              res.code === 200 ? msg.success(t('crud.updateSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value?.refresh()
-            })
-            break
-        }
-      }).catch()
-    }
-    else if (formType === 'setDataScope') {
-      if (postModel.value.policy_type === 'CUSTOM_FUNC') {
-        postModel.value.value = [postModel.value.func_name]
+    try {
+      if (['add', 'edit'].includes(formType)) {
+        await submitDialog({
+          validate: () => positionForm.value?.getElFormRef()?.validate?.(),
+          submit: () => formType === 'add'
+            ? create(postModel.value)
+            : save(postModel.value?.id as number, postModel.value),
+          successMessage: formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'),
+          close: maDialog.close,
+          onSuccess: async () => {
+            await proTableRef.value?.refresh()
+          },
+        })
+        return
       }
-      if (postModel.value.policy_type === 'CUSTOM_DEPT') {
-        postModel.value.value = scopeRef.value.deptRef.elTree?.getCheckedKeys()
+
+      if (formType === 'setDataScope') {
+        await submitDialog({
+          validate: () => {
+            if (postModel.value.policy_type === 'CUSTOM_FUNC') {
+              postModel.value.value = [postModel.value.func_name]
+            }
+            if (postModel.value.policy_type === 'CUSTOM_DEPT') {
+              postModel.value.value = scopeRef.value.deptRef.elTree?.getCheckedKeys()
+            }
+          },
+          submit: () => setDataScope(postModel.value?.id as number, postModel.value),
+          successMessage: t('crud.updateSuccess'),
+          close: maDialog.close,
+          onSuccess: async () => {
+            await proTableRef.value?.refresh()
+          },
+        })
       }
-      setDataScope(postModel.value?.id as number, postModel.value).then((res: any) => {
-        res.code === ResultCode.SUCCESS ? msg.success(t('crud.updateSuccess')) : msg.error(res.message)
-        maDialog.close()
-        proTableRef.value?.refresh()
-      })
     }
-    okLoadingState(false)
+    finally {
+      okLoadingState(false)
+    }
   },
 })
 

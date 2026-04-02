@@ -9,15 +9,18 @@
 - `docs/tencent-ads-batch-create-tech.md`
 - `docs/tencent-ads-batch-create-task-list.md`
 - `docs/tencent-ads-batch-create-table-design.md`
+- `docs/tencent-ads-api-baseline.md`
+- `docs/tencent-ads-v3-official-reading-notes.md`
 
 ## 2. 当前 MVP 共识
 ### 2.1 总原则
 - 先做最小闭环，不做大而全组织体系。
-- 先保证能跑通租户、项目、员工、账号授权、扫码获取 `userToken`、异步任务。
+- 先保证能跑通租户、项目、员工、账号授权、获取 `user_token` 执行身份、广告数据拉取与复审。
 - 保留扩展位，但当前不引入复杂部门树、复杂角色树。
-- 素材、模板、任务都先跟项目权限走，不做租户级默认共享。
-- 所有导出统一进入任务中心，不做分散的同步导出实现。
-- 任务中心产品入口统一，但底层采用“统一任务主表 + 类型明细表”方案，避免单表失控。
+- 广告、创意、创意组件数据都先跟项目权限走，不做租户级默认共享。
+- 腾讯广告接口对接以当前官方开发者官网 `developers.e.qq.com/v3.0` 作为主入口。
+- 具体请求 `API_VERSION` 不在项目文档中写死，以每个接口页面的当前声明为准；首期实现先固定接口清单与对应版本号，再进入开发。
+- 官方 SDK 用于快速枚举接口目录和追踪接口变更，但字段与约束仍以官方接口页面为准。
 
 ### 2.2 当前实现边界
 - MVP 租户能力统一基于现有 `MineAdmin user/role/menu` 体系实现。
@@ -37,8 +40,8 @@
 MVP 阶段建议统一按以下方式理解：
 
 - 真正用于投放与建广告的是 `广告主账户`
-- 本地员工通过腾讯扫码跳转获取 `userToken`
-- 回调当前只关注 `userToken`、过期时间和可选微信昵称
+- 租户授权广告主账号走 OAuth 授权码模式，回调拿到的是 `authorization_code`
+- 本地员工执行受限接口时另行获取 `user_token`
 - 腾讯第三方应用由平台统一管理，并按租户分配使用
 
 产品层直接围绕“广告主账户”提供操作，不单独暴露“管家账号 / 授权主体”菜单。
@@ -68,7 +71,7 @@ MVP 阶段建议统一按以下方式理解：
   - 用于保存 `tenant_id`、`platform_app_id`、状态、分配时间
 - `tenant_auth_grant`
   - 表示租户使用平台应用发起的一次 OAuth 授权来源记录
-  - 用于保存授权身份类型、来源账号、token、过期时间、同步范围
+  - 用于保存 `authorization_code` 回调快照、`access_token / refresh_token`、过期时间、同步范围
 - `tenant_ad_account`
   - 表示真正执行广告投放的广告主账户
 - `tenant_project_ad_account`
@@ -82,12 +85,13 @@ MVP 绑定链路统一为：
 平台管理应用
 -> 分配应用给租户
 -> 租户在广告主账号中直接发起授权
--> 系统内部创建授权来源记录
--> 拉取并选择广告主账户
+-> OAuth 回调拿到 authorization_code
+-> 系统内部创建授权来源记录并换取 access_token / refresh_token
+-> 使用 `advertiser/get` 为主、必要时结合 `organization_account_relation/get` 拉取并选择广告主账户
 -> 归属到项目
 -> 配置项目成员
 -> 授权给员工
--> 员工扫码获取执行凭证后执行
+-> 员工获取可用 `user_token` 后执行
 ```
 
 这样做有几个好处：
@@ -130,15 +134,13 @@ MVP 先建最少模型：
 - `tenant_ad_account`
 - `tenant_project_ad_account`
 - `tenant_member_ad_account`
-- `project_material`
-- `project_template`
 - `user_token_session`
 - `user_token`
-- `async_task`
-- `async_task_item`
-- `async_task_log`
-- `ad_batch_task_detail`
-- `export_task_detail`
+- 广告本地快照
+- 创意本地快照
+- 创意组件本地快照
+- 审核结果快照
+- 编辑与复审审计记录
 
 ### 3.3 为什么先不做复杂角色表
 MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单权限，不再额外新增 `tenant_role` 体系。
@@ -161,9 +163,10 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 
 项目
 ├── 广告主账号
-├── 模板
-├── 素材
-└── 任务
+├── 广告
+├── 创意
+├── 创意组件
+└── 审核结果
 ```
 
 租户是管理边界，项目是系统主工作上下文。
@@ -181,9 +184,7 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 系统内部保留 `tenant_auth_grant` 记录 OAuth 授权来源和同步依据。
 - 项目创建与广告主账号导入是两个动作；账号归项目在 `投放账号管理` 中完成。
 - 广告主账号归属到项目，再授权给员工。
-- 素材、模板、任务都默认归项目管理。
-- 广告投放类任务必须属于某个项目。
-- 任务中心允许平台级、租户级、项目级任务共存。
+- 广告、创意、创意组件、审核结果都默认归项目管理。
 - 租户侧业务页面默认在某个当前项目下运行，不按全租户平铺展示。
 - 员工登录后，如只加入一个项目则默认进入该项目；如加入多个项目，则允许切换当前项目。
 - 当前 MVP 只保留两类租户角色：
@@ -198,9 +199,8 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
   - 团队项目管理
   - 投放账号管理
     - 广告主账号
-- 素材中心
-- 模板中心
-- 任务中心
+- 广告管理
+- 审核与日志
 - 报表与日志
 
 ## 5. 关键实现原则
@@ -211,10 +211,7 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 平台应用表不带 `tenant_id`、`project_id`
 - 租户应用分配关系表带 `tenant_id`，不带 `project_id`
 - 可在员工侧预留 `last_project_id` 一类字段，用于记录最近使用项目
-- 任务中心统一使用 `async_task` 作为主表，公共字段只放通用检索与状态信息
-- 任务归属统一用 `scope_type` + `scope_id` 表示，可取 `platform / tenant / project`
-- 广告投放类任务除了 `scope_type=project`，仍应显式保留 `project_id`，便于项目上下文查询
-- 明细参数、导出文件信息、业务统计结果放入类型明细表，不堆进任务主表
+- 当前一期以项目内广告/创意/组件快照和审核快照为主，二期再补任务中心主表与明细表
 - 执行链路相关表必须记录：
   - `operator_user_id`
   - `executor_user_id`
@@ -225,7 +222,7 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 平台账号默认不进入租户/项目作用域。
 - 租户账号默认先进入 `tenant_id` 作用域。
 - 租户侧绝大多数业务接口必须在项目上下文中执行。
-- 列表、详情、任务、素材、模板、投放账号授权等接口优先按 `project_id` 过滤数据。
+- 列表、详情、审核结果、投放账号授权等接口优先按 `project_id` 过滤数据。
 - 权限校验顺序固定为：
   - 先校验 `tenant_id`
   - 再校验项目成员关系
@@ -233,13 +230,13 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 租户管理员可以切换本租户下任意项目；优化师只能切换自己已加入项目。
 
 ### 5.3 凭证原则
-- `userToken` 当前视为业务执行凭证命名。
-- 腾讯扫码跳转当前只用于获取 `userToken`，不承担本地账号识别。
-- 回调核心字段当前按 `userToken`、过期时间、可选 `wechat_nickname` 设计，当前默认按 15 天有效期处理。
+- 执行凭证统一按官方参数名 `user_token` 记录，不再与 OAuth token 混用。
+- 腾讯 OAuth 回调只负责返回 `authorization_code` 与 `state`，不负责返回 `user_token`。
+- 受限接口页当前明确写明：`user_token` 是“实名认证完成获取的令牌”，且必须作为请求参数传递，不放在 header 中。
+- `user_token` 的获取方式与有效期以腾讯当前实名对接文档为准，项目文档中不写死 15 天。
 - `wechat_nickname` 只用于展示和审计，不作为唯一身份或权限依据。
 - `user_token` 按本地员工维度存储，不按项目维度存储。
 - `user_token_session` 只做跳转 `state` 绑定、回调防串单和短时状态记录。
-- 未确认腾讯官方字段前，代码中避免把它写死成 OAuth 标准字段名。
 - 凭证明文不入队列消息。
 
 ### 5.4 权限原则
@@ -250,16 +247,59 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - 权限链固定为：
   - 先项目授权
   - 再广告主账户授权
-  - 再确认可用 `userToken`
+  - 再确认可用 `user_token`
+
+### 5.5 腾讯广告拉取与复审原则
+- 当前 MVP 不做“批量创建广告主链路”，优先做存量广告资产的拉取、状态识别、编辑和复审。
+- 首期接口重点围绕 `adgroups/get`、`dynamic_creatives/get`、`components/get`、`component_detail/get` 和对应审核/复审接口展开。
+- 必须把审核状态、审核原因、拒审信息落到本地快照，支持项目维度筛选“未通过 / 待审核 / 已通过”。
+- 只允许对“未通过且可编辑字段”开放编辑；字段可编辑性按官方接口约束做白名单控制。
+- 编辑提交后必须回写“提交人、提交时间、提交参数摘要、目标对象ID”，并保留编辑前后快照。
+- 复审结果通过轮询或定时同步回查，不靠人工刷新页面。
+- 接口调用统一做幂等键和限流重试，避免重复提交和状态错乱。
+
+### 5.6 三个对象关系与复杂度（按官方 v3 文档核对）
+- `广告`：
+  - 官方页面路径：`/v3.0/docs/api/adgroups/get`、`/v3.0/docs/api/adgroups/update`
+  - 页面正文实际描述的是“广告”，不是“广告组”
+  - 当前可见可编辑字段更偏广告层自身：名称、状态、预算、出价、定向、优化目标等
+  - 审核相关字段至少包含：`configured_status`、`system_status`
+- `创意`：
+  - 官方页面路径：`/v3.0/docs/api/dynamic_creatives/get`、`/v3.0/docs/api/dynamic_creatives/update`
+  - 与广告的关系：创意列表可按 `adgroup_id` 过滤
+  - 与组件的关系：创意页和更新页大量出现 `component_id`
+  - 还依赖：`creative_template_id` / 创意规格详情页 / `page_spec`
+  - 编辑复杂度最高，官方更新页参数量远大于广告层
+- `创意组件`：
+  - 官方页面路径：`/v3.0/docs/api/components/get`、`/v3.0/docs/api/component_detail/get`
+  - 组件库存层面返回：`component_id`、`component_value`
+  - 组件详情按类型展开到标题、文本、图片、按钮等多种结构
+  - 官方 `apilist` 当前可见 `components/add`、`components/delete`，但未见统一 `components/update` 页面，说明组件编辑链路不能简单理解成“一个统一 update 接口”
+
+按当前官方文档可稳定确认的关系链：
+
+```text
+广告
+-> 通过 adgroup_id 关联创意查询
+-> 创意通过 component_id 引用创意组件
+-> 创意组件详情再展开具体 component_value
+```
+
+补充说明：
+- `dynamic_creatives/update` 页面正文明确提示：同一个广告下，创意的新建、更新、删除必须串行执行。
+- 同页还明确提示：对于 `creative_components` 相关参数，`component_id` 和 `value` 只需传一个；若同时传入，以 `value` 为准。
+- 审核与复审在官方文档里是独立能力，不只是对象 `update`：
+  - `dynamic_creative_review_results/get`
+  - `component_review_results/get`
+  - `element_appeal_review/add|get`
+  - `component_element_urge_review/add|get`
 
 ## 6. 异步任务实现原则
 ### 6.1 主链路
-- 使用 `hyperf/async-queue`
-- 所有异步任务先写入 `async_task` 主表，再按任务类型进入对应执行链路
-- 广告批量任务落库后，如无可用 `userToken` 则先发起扫码获取，凭证可用后再拆执行项
-- Job 中只放 ID，不放敏感凭证
+- 拉取与复审链路优先保证同步可用，定时同步再按需要接入 `hyperf/crontab`。
+- 如引入异步处理，Job 中只放业务 ID，不放敏感凭证。
 
-### 6.2 导出任务原则
+### 6.2 导出任务原则（二期）
 - 所有导出能力统一创建异步任务，不再在页面请求中直接导出大文件
 - 页面只负责提交导出请求、展示任务状态、提供结果下载入口
 - 导出结果文件地址、过期时间、失败原因等信息写入 `export_task_detail`
@@ -291,7 +331,8 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 实现：
 
 - 平台应用管理与租户分配
-- 广告主账户授权/同步管理
+- OAuth 授权码回调、token 换取与刷新
+- 通过 `advertiser/get` 为主、必要时结合 `organization_account_relation/get` 完成广告主账户同步
 - 项目绑定广告主账户
 - 员工广告主账户授权
 
@@ -301,14 +342,29 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 - `user_token_session`
 - 执行凭证
 
-### 第五步：任务中心
+### 第五步：广告数据拉取与审核状态同步
 实现：
 
-- 统一任务主表
-- 广告批量任务接入
-- 导出任务接入
-- 状态流转
-- 队列执行
+- 拉取广告列表（含审核状态）
+- 拉取广告创意列表（含审核状态）
+- 拉取创意组件列表（含审核状态）
+- 未通过项筛选与状态聚合
+
+### 第六步：编辑与复审闭环
+实现：
+
+- 未通过广告创意编辑
+- 未通过创意组件编辑
+- 再次提交审核
+- 复审结果回查与日志审计
+
+### 第七步（二期）：异步任务与批量创建
+实现：
+
+- 统一任务中心主表与执行项表
+- 批量创建广告任务接入
+- `hyperf/async-queue` 执行链路
+- 失败重试与补偿链路
 
 ## 8. 当前明确不做
 - 复杂部门树
@@ -327,14 +383,14 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
 4. 如要做表设计、任务中心或导出，再读 `docs/tencent-ads-batch-create-table-design.md`
 5. 当前目标是：
    - 做最快落地的 MVP
-   - 组织架构采用 `平台 -> 租户 -> 项目 -> 广告主账户 -> 员工授权 -> 任务`
+   - 组织架构采用 `平台 -> 租户 -> 项目 -> 广告主账户 -> 员工授权 -> 执行凭证`
    - 租户能力基于现有 `MineAdmin` 体系实现
    - 平台与租户身份分离
-   - 异步主链路使用 `hyperf/async-queue`
+   - 一期先做拉取/编辑/复审，二期接入异步任务与批量创建
 
 ## 10. 下一步建议
 下一步最值得先做的是：
 
 1. 一期表设计文档
-2. 对应数据库迁移
-3. 租户、项目、员工基础模型
+2. 锁定官方 v3 首期接口清单
+3. 广告、创意、组件与审核结果本地快照设计

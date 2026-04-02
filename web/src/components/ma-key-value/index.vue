@@ -28,16 +28,15 @@ zh_TW:
 <script setup lang="ts">
 import type { UseDialogExpose } from '@/hooks/useDialog.ts'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import KeyValueForm from './components/form.vue'
-import { ResultCode } from '@/utils/ResultCode.ts'
-import { useMessage } from '@/hooks/useMessage.ts'
 
 defineOptions({ name: 'MaKeyValue' })
 
 const model = defineModel<any>()
 const t = useTrans().globalTrans
 const formRef = ref()
-const msg = useMessage()
+const submitDialog = useDialogSubmit()
 
 function addKeyValue() {
   model.value = [...model.value, { label: '', value: '' }]
@@ -51,14 +50,14 @@ function removeKeyValue(index: number) {
 // 弹窗配置
 const maDialog: UseDialogExpose = useDialog({
   alignCenter: true,
-  // 保存数据
-  ok: ({ formType: _formType }, _okLoadingState: (state: boolean) => void) => {
-    formRef.value.add().then((res: any) => {
-      res.code === ResultCode.SUCCESS ? msg.success(t('parse_success')) : msg.error(res.message)
-      model.value = [...model.value, ...res.data]
-      maDialog.close()
-    }).catch((err: any) => {
-      msg.alertError(err.message)
+  ok: async ({ formType: _formType }, _okLoadingState: (state: boolean) => void) => {
+    await submitDialog({
+      submit: () => formRef.value.add(),
+      successMessage: t('parse_success'),
+      close: maDialog.close,
+      onSuccess: (res: any) => {
+        model.value = [...model.value, ...res.data]
+      },
     })
   },
 })

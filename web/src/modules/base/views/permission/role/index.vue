@@ -17,6 +17,7 @@ import { deleteByIds, page } from '~/base/api/role'
 import getSearchItems from './data/getSearchItems.tsx'
 import getTableColumns from './data/getTableColumns.tsx'
 import useDialog from '@/hooks/useDialog.ts'
+import useDialogSubmit from '@/hooks/useDialogSubmit.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 
@@ -32,55 +33,37 @@ const selections = ref<any[]>([])
 const i18n = useTrans() as TransType
 const t = i18n.globalTrans
 const msg = useMessage()
+const submitDialog = useDialogSubmit()
 
 // 弹窗配置
 const maDialog: UseDialogExpose = useDialog({
   lgWidth: '550px',
-  // 保存数据
-  ok: ({ formType }, okLoadingState: (state: boolean) => void) => {
+  ok: async ({ formType }, okLoadingState: (state: boolean) => void) => {
     okLoadingState(true)
-    if (['add', 'edit'].includes(formType)) {
-      const elForm = formRef.value.maForm.getElFormRef()
-      // 验证通过后
-      elForm.validate().then(() => {
-        switch (formType) {
-          // 新增
-          case 'add':
-            formRef.value.add().then((res: any) => {
-              res.code === ResultCode.SUCCESS ? msg.success(t('crud.createSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value.refresh()
-            }).catch((err: any) => {
-              msg.alertError(err)
-            })
-            break
-          // 修改
-          case 'edit':
-            formRef.value.edit().then((res: any) => {
-              res.code === 200 ? msg.success(t('crud.updateSuccess')) : msg.error(res.message)
-              maDialog.close()
-              proTableRef.value.refresh()
-            }).catch((err: any) => {
-              msg.alertError(err)
-            })
-            break
-        }
-      }).catch()
-    }
-    else {
-      const elForm = setFormRef.value.maForm.getElFormRef()
-      // 验证通过后
-      elForm.validate().then(() => {
-        // 设置角色
-        setFormRef.value.saveUserRole().then((res: any) => {
-          res.code === ResultCode.SUCCESS ? msg.success(t('baseUserManage.setRoleSuccess')) : msg.error(res.message)
-          maDialog.close()
-        }).catch((err: any) => {
-          msg.alertError(err)
+    try {
+      if (['add', 'edit'].includes(formType)) {
+        await submitDialog({
+          validate: () => formRef.value.maForm.getElFormRef().validate(),
+          submit: () => formType === 'add' ? formRef.value.add() : formRef.value.edit(),
+          successMessage: formType === 'add' ? t('crud.createSuccess') : t('crud.updateSuccess'),
+          close: maDialog.close,
+          onSuccess: async () => {
+            await proTableRef.value.refresh()
+          },
         })
+        return
+      }
+
+      await submitDialog({
+        validate: () => setFormRef.value.maForm.getElFormRef().validate(),
+        submit: () => setFormRef.value.saveUserRole(),
+        successMessage: t('baseUserManage.setRoleSuccess'),
+        close: maDialog.close,
       })
     }
-    okLoadingState(false)
+    finally {
+      okLoadingState(false)
+    }
   },
 })
 

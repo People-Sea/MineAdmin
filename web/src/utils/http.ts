@@ -13,12 +13,18 @@ import Message from 'vue-m-message'
 import { useDebounceFn } from '@vueuse/core'
 import { useNProgress } from '@vueuse/integrations/useNProgress'
 import useCache from '@/hooks/useCache.ts'
+import { extractErrorMessage, markHandledError } from '@/utils/errorFeedback.ts'
 import { ResultCode } from './ResultCode.ts'
 
 const { isLoading } = useNProgress()
 const cache = useCache()
 const requestList = ref<any[]>([])
 const isRefreshToken = ref<boolean>(false)
+
+function showHandledError(error: unknown, fallback: string) {
+  markHandledError(error)
+  Message.error(extractErrorMessage(error, fallback), { zIndex: 9999 })
+}
 
 function createHttp(baseUrl: string | null = null, config: AxiosRequestConfig = {}): AxiosInstance {
   const env = import.meta.env
@@ -69,7 +75,7 @@ http.interceptors.response.use(
           reader.onload = () => {
             const result = JSON.parse(reader.result as string)
             if (result.code !== ResultCode.SUCCESS) {
-              Message.error(result.message || '下载失败', { zIndex: 9999 })
+              showHandledError(result, '下载失败')
               reject(result)
             }
           }
@@ -102,10 +108,10 @@ http.interceptors.response.use(
         case ResultCode.UNAUTHORIZED:
         {
           const logout = async () => {
-            if (isLogout === false) {
+            if (!isLogout) {
               isLogout = true
               setTimeout(() => isLogout = false, 5000)
-              Message.error(response?.data?.message ?? '登录已过期', { zIndex: 9999 })
+              showHandledError(response?.data, '登录已过期')
               await useUserStore().logout()
             }
           }
@@ -162,12 +168,12 @@ http.interceptors.response.use(
           }
         }
         case ResultCode.DISABLED: {
-          Message.error(response?.data?.message ?? '账号已被禁用', {zIndex: 9999})
+          showHandledError(response?.data, '账号已被禁用')
           await useUserStore().logout()
           break
         }
         default:
-          Message.error(response?.data?.message ?? '服务器错误', { zIndex: 9999 })
+          showHandledError(response?.data, '服务器错误')
           break
       }
 
@@ -178,7 +184,7 @@ http.interceptors.response.use(
     isLoading.value = false
     const serverError = useDebounceFn(async () => {
       if (error && error.response && error.response.status === 500) {
-        Message.error(error.message ?? '服务器错误', { zIndex: 9999 })
+        showHandledError(error, '服务器错误')
       }
     }, 3000, { maxWait: 5000 })
     await serverError()

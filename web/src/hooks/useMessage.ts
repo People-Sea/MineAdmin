@@ -1,5 +1,6 @@
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import type { MessageBoxInputValidator } from 'element-plus/es/components/message-box/src/message-box.type'
+import { extractErrorMessage, isHandledError } from '@/utils/errorFeedback.ts'
 
 export function useMessage() {
   const t = useTrans().globalTrans
@@ -9,8 +10,12 @@ export function useMessage() {
       ElMessage.info(content)
     },
     // 错误消息
-    error(content: string) {
-      ElMessage.error(content)
+    error(content: unknown) {
+      if (isHandledError(content)) {
+        return
+      }
+
+      ElMessage.error(extractErrorMessage(content))
     },
     // 成功消息
     success(content: string) {
@@ -25,8 +30,12 @@ export function useMessage() {
       ElMessageBox.alert(content, t('crud.confirmTitle'))
     },
     // 错误提示
-    alertError(content: string) {
-      ElMessageBox.alert(content, t('crud.confirmTitle'), { type: 'error' })
+    alertError(content: unknown) {
+      if (isHandledError(content)) {
+        return
+      }
+
+      ElMessageBox.alert(extractErrorMessage(content), t('crud.confirmTitle'), { type: 'error' })
     },
     // 成功提示
     alertSuccess(content: string) {
@@ -46,10 +55,14 @@ export function useMessage() {
       })
     },
     // 错误通知
-    notifyError(content: string) {
+    notifyError(content: unknown) {
+      if (isHandledError(content)) {
+        return
+      }
+
       ElNotification.error({
         title: t('crud.confirmTitle'),
-        message: content,
+        message: extractErrorMessage(content),
       })
     },
     // 成功通知
