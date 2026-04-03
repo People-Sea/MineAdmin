@@ -14,7 +14,7 @@ const { formType = 'add', data = null } = defineProps<{
 }>()
 
 const t = useTrans().globalTrans
-const appForm = ref<MaFormExpose>()
+const platformAppForm = ref<MaFormExpose>()
 const appModel = ref<PlatformAppVo>({})
 
 useForm('platformAppForm').then((form: MaFormExpose) => {
@@ -49,10 +49,10 @@ function edit(): Promise<any> {
 defineExpose({
   add,
   edit,
-  maForm: appForm,
+  maForm: platformAppForm,
 })
 </script>
 
 <template>
-  <ma-form ref="appForm" v-model="appModel" />
+  <ma-form ref="platformAppForm" v-model="appModel" />
 </template>
