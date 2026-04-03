@@ -6,9 +6,10 @@ namespace App\Schema;
 
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'LeaderSchema', description: '部门领导模型')]
-class LeaderSchema implements \JsonSerializable
+class LeaderSchema implements JsonSerializable
 {
     #[Property(property: 'dept_id', title: '部门ID', type: 'int')]
     public ?int $deptId;

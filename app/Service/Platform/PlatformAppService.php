@@ -41,7 +41,7 @@ final class PlatformAppService extends IService
 
     public function updateById(mixed $id, array $data): mixed
     {
-        /** @var PlatformApp|null $app */
+        /** @var null|PlatformApp $app */
         $app = $this->findById($id);
         if ($app === null) {
             return false;
@@ -52,7 +52,7 @@ final class PlatformAppService extends IService
 
     public function enableById(int $id, int $operatorId): bool
     {
-        /** @var PlatformApp|null $app */
+        /** @var null|PlatformApp $app */
         $app = $this->findById($id);
         if ($app === null) {
             return false;
@@ -66,7 +66,7 @@ final class PlatformAppService extends IService
 
     public function disableById(int $id, int $operatorId): bool
     {
-        /** @var PlatformApp|null $app */
+        /** @var null|PlatformApp $app */
         $app = $this->findById($id);
         if ($app === null) {
             return false;

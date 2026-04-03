@@ -7,6 +7,7 @@ namespace HyperfTests\Feature\Admin;
 use App\Http\Common\ResultCode;
 use App\Model\UserOperationLog;
 use Carbon\Carbon;
+use Exception;
 use Hyperf\Collection\Arr;
 use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Stringable\Str;
@@ -72,7 +73,7 @@ final class UserOperationLogControllerTest extends ControllerCase
         self::assertSame(Arr::get($result, 'code'), ResultCode::SUCCESS->value);
         try {
             $entity->refresh();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             self::assertInstanceOf(ModelNotFoundException::class, $exception);
         }
         $this->deletePermissions('log:userOperation:delete');

@@ -15,7 +15,7 @@ use Hyperf\DbConnection\Model\Model;
  * @property string $callback_url OAuth回调地址
  * @property int $status 状态
  * @property string $availability_status 可用状态
- * @property Carbon|null $last_check_at 最近校验时间
+ * @property null|Carbon $last_check_at 最近校验时间
  * @property string $last_error_code 最近错误码
  * @property string $last_error_message 最近错误信息
  * @property int $created_by 创建者

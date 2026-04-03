@@ -7,13 +7,14 @@ namespace App\Exception\Handler;
 use App\Http\Common\Result;
 use App\Http\Common\ResultCode;
 use Hyperf\Validation\ValidationException;
+use Throwable;
 
 final class ValidationExceptionHandler extends AbstractHandler
 {
     /**
      * @param ValidationException $throwable
      */
-    public function handleResponse(\Throwable $throwable): Result
+    public function handleResponse(Throwable $throwable): Result
     {
         $this->stopPropagation();
         return new Result(
@@ -22,7 +23,7 @@ final class ValidationExceptionHandler extends AbstractHandler
         );
     }
 
-    public function isValid(\Throwable $throwable): bool
+    public function isValid(Throwable $throwable): bool
     {
         return $throwable instanceof ValidationException;
     }

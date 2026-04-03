@@ -10,6 +10,7 @@ use App\Model\Enums\DataPermission\PolicyType;
 use App\Model\Permission\User;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Database\Query\Builder;
+use RuntimeException;
 
 class Factory
 {
@@ -36,7 +37,7 @@ class Factory
         if ($policy->policy_type === PolicyType::CustomFunc) {
             $customFunc = $policy->value[0] ?? null;
             if (! \is_string($customFunc)) {
-                throw new \RuntimeException(\sprintf('Invalid custom function: %s', $customFunc));
+                throw new RuntimeException(\sprintf('Invalid custom function: %s', $customFunc));
             }
             $this->rule->loadCustomFunc($customFunc, $builder, $user, $policy, $scopeType);
         }

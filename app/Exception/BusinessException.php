@@ -6,8 +6,9 @@ namespace App\Exception;
 
 use App\Http\Common\Result;
 use App\Http\Common\ResultCode;
+use RuntimeException;
 
-class BusinessException extends \RuntimeException
+class BusinessException extends RuntimeException
 {
     private Result $response;
 

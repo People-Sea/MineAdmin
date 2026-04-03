@@ -13,6 +13,7 @@ use Hyperf\Cache\CacheManager;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Database\Query\Builder;
 use Psr\SimpleCache\CacheInterface;
+use RuntimeException;
 
 class Rule
 {
@@ -68,7 +69,7 @@ class Rule
     {
         $func = $this->config->get('department.custom.' . $customFunc);
         if ($func === null) {
-            throw new \RuntimeException(\sprintf('Custom function %s not found', $customFunc));
+            throw new RuntimeException(\sprintf('Custom function %s not found', $customFunc));
         }
         $func($builder, $scopeType, $policy, $user);
     }

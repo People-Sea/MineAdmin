@@ -12,6 +12,7 @@ use Hyperf\Collection\Collection;
 use Hyperf\Context\ApplicationContext;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use RuntimeException;
 
 abstract class AbstractExecutable
 {
@@ -53,6 +54,6 @@ abstract class AbstractExecutable
         if ($result instanceof Collection) {
             return $result;
         }
-        throw new \RuntimeException('Custom func must return Collection');
+        throw new RuntimeException('Custom func must return Collection');
     }
 }

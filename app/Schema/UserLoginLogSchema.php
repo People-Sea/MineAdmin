@@ -7,9 +7,10 @@ namespace App\Schema;
 use App\Model\UserLoginLog;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'UserLoginLogSchema')]
-class UserLoginLogSchema implements \JsonSerializable
+class UserLoginLogSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '主键', type: 'int')]
     public ?int $id;

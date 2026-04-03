@@ -7,9 +7,10 @@ namespace App\Schema;
 use App\Model\Permission\Menu;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'MenuSchema')]
-final class MenuSchema implements \JsonSerializable
+final class MenuSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '主键', type: 'int')]
     public ?int $id;

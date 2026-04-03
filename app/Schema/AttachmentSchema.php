@@ -7,9 +7,10 @@ namespace App\Schema;
 use App\Model\Attachment;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'AttachmentSchema')]
-final class AttachmentSchema implements \JsonSerializable
+final class AttachmentSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '主键', type: 'int')]
     public ?int $id;

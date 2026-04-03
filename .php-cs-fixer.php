@@ -49,6 +49,11 @@ return (new Config())
             ],
             'sort_algorithm' => 'alpha',
         ],
+        'global_namespace_import' => [
+            'import_classes' => true,
+            'import_constants' => null,
+            'import_functions' => null,
+        ],
         'single_line_comment_style' => [
             'comment_types' => [
             ],
@@ -82,7 +87,9 @@ return (new Config())
         'single_quote' => true,
         'standardize_not_equals' => true,
         'multiline_comment_opening_closing' => true,
-        'mb_str_functions' => true,
+        'mb_str_functions' => false,
+        'native_constant_invocation' => false,
+        'native_function_invocation' => false,
         'set_type_to_cast' => true,
         'no_multiline_whitespace_around_double_arrow' => true,
         'normalize_index_brace' => true,

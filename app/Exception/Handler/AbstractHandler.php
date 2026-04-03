@@ -17,6 +17,7 @@ use Mine\Support\Logger\UuidRequestIdProcessor;
 use Mine\Support\Traits\Debugging;
 use Psr\Container\ContainerInterface;
 use Swow\Psr7\Message\ResponsePlusInterface;
+use Throwable;
 
 abstract class AbstractHandler extends ExceptionHandler
 {
@@ -29,9 +30,9 @@ abstract class AbstractHandler extends ExceptionHandler
         private readonly LoggerFactory $loggerFactory
     ) {}
 
-    abstract public function handleResponse(\Throwable $throwable): Result;
+    abstract public function handleResponse(Throwable $throwable): Result;
 
-    public function handle(\Throwable $throwable, ResponsePlusInterface $response)
+    public function handle(Throwable $throwable, ResponsePlusInterface $response)
     {
         $this->report($throwable);
         return value(function (ResponsePlusInterface $responsePlus) use ($throwable) {
@@ -61,7 +62,7 @@ abstract class AbstractHandler extends ExceptionHandler
     /**
      * 上报日志+打印错误.
      */
-    public function report(\Throwable $throwable)
+    public function report(Throwable $throwable)
     {
         // 如果是debug模式，打印错误到控制台
         if ($this->isDebug()) {

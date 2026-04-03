@@ -8,12 +8,13 @@ use App\Model\DataPermission\Policy;
 use App\Model\Enums\DataPermission\PolicyType;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 /**
  * @see Policy
  */
 #[Schema(title: 'PolicySchema')]
-class PolicySchema implements \JsonSerializable
+class PolicySchema implements JsonSerializable
 {
     #[Property(property: 'policy_type', title: '策略类型', type: 'string')]
     protected PolicyType $policyType;

@@ -7,8 +7,8 @@ namespace App\Repository\Platform;
 use App\Model\PlatformApp;
 use App\Repository\IRepository;
 use Hyperf\Collection\Arr;
-use Hyperf\Database\Model\Builder;
 use Hyperf\Collection\Collection;
+use Hyperf\Database\Model\Builder;
 
 /**
  * @extends IRepository<PlatformApp>

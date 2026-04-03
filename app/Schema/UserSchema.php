@@ -9,9 +9,10 @@ use App\Model\Enums\User\Type;
 use App\Model\Permission\User;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema]
-final class UserSchema implements \JsonSerializable
+final class UserSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '用户ID，主键', type: 'int')]
     public ?int $id;

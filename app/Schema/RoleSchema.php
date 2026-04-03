@@ -8,9 +8,10 @@ use App\Model\Permission\Role;
 use Carbon\CarbonInterface;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'RoleSchema')]
-final class RoleSchema implements \JsonSerializable
+final class RoleSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '主键', type: 'int')]
     public ?int $id;

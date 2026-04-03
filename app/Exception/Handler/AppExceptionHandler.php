@@ -6,10 +6,11 @@ namespace App\Exception\Handler;
 
 use App\Http\Common\Result;
 use App\Http\Common\ResultCode;
+use Throwable;
 
 final class AppExceptionHandler extends AbstractHandler
 {
-    public function handleResponse(\Throwable $throwable): Result
+    public function handleResponse(Throwable $throwable): Result
     {
         $this->stopPropagation();
         return new Result(
@@ -18,7 +19,7 @@ final class AppExceptionHandler extends AbstractHandler
         );
     }
 
-    public function isValid(\Throwable $throwable): bool
+    public function isValid(Throwable $throwable): bool
     {
         return true;
     }

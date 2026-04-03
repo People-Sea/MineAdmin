@@ -10,6 +10,9 @@ use Hyperf\HttpMessage\Upload\UploadedFile;
 use Mine\AppStore\Exception\PluginNotFoundException;
 use Mine\AppStore\Plugin;
 use Mine\AppStore\Service\Impl\AppStoreServiceImpl;
+use RuntimeException;
+use Throwable;
+use ZipArchive;
 
 class Service
 {
@@ -46,8 +49,8 @@ class Service
         try {
             Plugin::forceRefreshJsonPath();
             Plugin::install($params['identifier']);
-        } catch (\RuntimeException $e) {
-            throw new \RuntimeException($e->getMessage());
+        } catch (RuntimeException $e) {
+            throw new RuntimeException($e->getMessage());
         }
 
         return true;
@@ -68,8 +71,8 @@ class Service
         try {
             Plugin::forceRefreshJsonPath();
             Plugin::uninstall($params['identifier']);
-        } catch (\RuntimeException $e) {
-            throw new \RuntimeException($e->getMessage());
+        } catch (RuntimeException $e) {
+            throw new RuntimeException($e->getMessage());
         }
         return true;
     }
@@ -101,10 +104,10 @@ class Service
         try {
             $runtimePath = BASE_PATH . '/runtime/' . uniqid('mineApp', true) . '.zip';
             $file->moveTo($runtimePath);
-            $zip = new \ZipArchive();
+            $zip = new ZipArchive();
             $zip->open($runtimePath);
-            if ($zip->status !== \ZipArchive::ER_OK) {
-                throw new \RuntimeException('Failed to open the zip file');
+            if ($zip->status !== ZipArchive::ER_OK) {
+                throw new RuntimeException('Failed to open the zip file');
             }
             $json = json_decode(
                 $zip->getFromName('mine.json'),
@@ -117,8 +120,8 @@ class Service
             Plugin::forceRefreshJsonPath();
             Plugin::install($json['name']);
             @unlink($runtimePath);
-        } catch (\Throwable $e) {
-            throw new \RuntimeException($e->getMessage());
+        } catch (Throwable $e) {
+            throw new RuntimeException($e->getMessage());
         }
         return true;
     }

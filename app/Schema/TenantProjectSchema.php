@@ -8,9 +8,10 @@ use App\Model\TenantProject;
 use Carbon\CarbonInterface;
 use Hyperf\Swagger\Annotation\Property;
 use Hyperf\Swagger\Annotation\Schema;
+use JsonSerializable;
 
 #[Schema(title: 'TenantProjectSchema')]
-final class TenantProjectSchema implements \JsonSerializable
+final class TenantProjectSchema implements JsonSerializable
 {
     #[Property(property: 'id', title: '主键', type: 'int')]
     public ?int $id;

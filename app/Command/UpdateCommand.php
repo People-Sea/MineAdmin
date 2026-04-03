@@ -10,6 +10,7 @@ use App\Model\Permission\User;
 use Hyperf\Command\Annotation\AsCommand;
 use Hyperf\Command\Concerns\InteractsWithIO;
 use Hyperf\DbConnection\Db;
+use stdClass;
 
 class UpdateCommand
 {
@@ -29,7 +30,7 @@ class UpdateCommand
         $result = Db::table(\Hyperf\Config\config('permission.database.table'))->select([
             'v1', 'v0', 'ptype',
         ])->get();
-        $result->map(static function (\stdClass $item) {
+        $result->map(static function (stdClass $item) {
             if ($item->ptype === 'g') {
                 $username = $item->v0;
                 $roleCode = $item->v1;

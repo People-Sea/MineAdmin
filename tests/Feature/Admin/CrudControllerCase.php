@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace HyperfTests\Feature\Admin;
 
 use App\Http\Common\ResultCode;
+use Exception;
 use Hyperf\Collection\Arr;
 use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\DbConnection\Model\Model;
@@ -50,7 +51,7 @@ class CrudControllerCase extends ControllerCase
         $this->assertSame($result['code'], ResultCode::FORBIDDEN->value);
         try {
             $entity = $model::query()->where($fillable)->first();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $entity = $model::query()->where(Arr::only($fillable, $required))->first();
         }
         if (empty($entity)) {

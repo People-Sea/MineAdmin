@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Library\DataPermission\Attribute;
 
 use App\Library\DataPermission\ScopeType;
+use Attribute;
 use Hyperf\Di\Annotation\AbstractAnnotation;
 
-#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 class DataScope extends AbstractAnnotation
 {
     public function __construct(

@@ -7,10 +7,11 @@ namespace App\Exception\Handler;
 use App\Http\Common\Result;
 use App\Http\Common\ResultCode;
 use Lcobucci\JWT\Exception;
+use Throwable;
 
 final class JwtExceptionHandler extends AbstractHandler
 {
-    public function handleResponse(\Throwable $throwable): Result
+    public function handleResponse(Throwable $throwable): Result
     {
         $this->stopPropagation();
         return match (true) {
@@ -28,7 +29,7 @@ final class JwtExceptionHandler extends AbstractHandler
         };
     }
 
-    public function isValid(\Throwable $throwable): bool
+    public function isValid(Throwable $throwable): bool
     {
         return $throwable instanceof Exception;
     }
