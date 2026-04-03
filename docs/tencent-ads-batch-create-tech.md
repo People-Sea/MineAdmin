@@ -11,6 +11,7 @@
 - `docs/tencent-ads-batch-create-table-design.md`
 - `docs/tencent-ads-api-baseline.md`
 - `docs/tencent-ads-v3-official-reading-notes.md`
+- `docs/功能设计/功能设计总览.md`
 
 ## 2. 当前 MVP 共识
 ### 2.1 总原则
@@ -293,6 +294,24 @@ MVP 阶段，租户角色直接复用 `MineAdmin` 的 `role` 表与角色菜单�
   - `component_review_results/get`
   - `element_appeal_review/add|get`
   - `component_element_urge_review/add|get`
+
+### 5.7 功能细节文档约定
+为避免后续边做边改，当前开始对 MVP 关键功能采用“一功能一文档”的细节文档方式。
+
+当前细节文档目录：
+
+- `docs/功能设计/功能设计总览.md`
+- `docs/功能设计/平台应用管理.md`
+- `docs/功能设计/平台应用分配.md`
+- `docs/功能设计/广告主账号授权与拉取.md`
+
+后续开发时，仍固定优先阅读以下基础文档：
+
+- `docs/tencent-ads-batch-create-prd.md`
+- `docs/tencent-ads-batch-create-tech.md`
+- `docs/tencent-ads-batch-create-task-list.md`
+
+进入具体功能实现前，再按需阅读对应功能的细节文档，不要求每次把 `docs/功能设计/` 下所有文档全部读完。
 
 ## 6. 异步任务实现原则
 ### 6.1 主链路
