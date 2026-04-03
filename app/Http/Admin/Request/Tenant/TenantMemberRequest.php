@@ -39,7 +39,7 @@ final class TenantMemberRequest extends FormRequest
         if ($this->isUpdate() && $tenantId === 0) {
             /** @var null|User $member */
             $member = User::query()->find($this->route('id'));
-            $tenantId = $member?->tenant_id ?? 0;
+            $tenantId = (int) $member?->tenant_id;
         }
 
         $usernameRule = Rule::unique('user', 'username');

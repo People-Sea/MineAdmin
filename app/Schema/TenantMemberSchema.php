@@ -73,11 +73,11 @@ final class TenantMemberSchema implements JsonSerializable
         $this->role = $model->role;
         $this->roleId = $model->role_id;
         $this->roleLabel = (string) ($model->role_label ?? '');
-        $this->status = $model->status;
+        $this->status = $model->status->value;
         $this->projectIds = (array) ($model->project_ids ?? []);
         $this->projectNames = (array) ($model->project_names ?? []);
         $this->projectCount = (int) ($model->project_count ?? 0);
-        $this->updatedAt = $model->updated_at?->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
+        $this->updatedAt = $model->updated_at->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
         $this->remark = $model->remark;
     }
 

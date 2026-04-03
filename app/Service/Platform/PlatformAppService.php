@@ -101,10 +101,11 @@ final class PlatformAppService extends IService
      */
     private function buildAvailabilityFields(array $payload, ?PlatformApp $app = null): array
     {
-        $appId = trim((string) ($payload['app_id'] ?? $app?->app_id ?? ''));
-        $callbackUrl = trim((string) ($payload['callback_url'] ?? $app?->callback_url ?? ''));
-        $secretCiphertext = trim((string) ($payload['secret_ciphertext'] ?? $app?->secret_ciphertext ?? ''));
-        $status = (int) ($payload['status'] ?? $app?->status ?? PlatformApp::STATUS_ENABLED);
+        $appId = trim((string) ($payload['app_id'] ?? $app?->app_id));
+        $callbackUrl = trim((string) ($payload['callback_url'] ?? $app?->callback_url));
+        $secretCiphertext = trim((string) ($payload['secret_ciphertext'] ?? $app?->secret_ciphertext));
+        $status = $payload['status'] ?? $app?->status;
+        $status = $status !== null ? (int) $status : PlatformApp::STATUS_ENABLED;
 
         $payload['last_check_at'] = Carbon::now();
 

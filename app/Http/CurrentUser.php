@@ -69,7 +69,7 @@ final class CurrentUser
 
     public function tenantId(): int
     {
-        return (int) ($this->user()?->tenant_id ?? 0);
+        return (int) $this->user()?->tenant_id;
     }
 
     public function isTenantAdmin(): bool

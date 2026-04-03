@@ -11,6 +11,9 @@ use Hyperf\Collection\Arr;
 use Hyperf\Database\Model\Builder;
 use Hyperf\Database\Model\Collection;
 
+/**
+ * @extends IRepository<Menu>
+ */
 final class MenuRepository extends IRepository
 {
     public function __construct(
@@ -22,9 +25,15 @@ final class MenuRepository extends IRepository
         return false;
     }
 
+    /**
+     * @return \Hyperf\Collection\Collection<int, Menu>
+     */
     public function list(array $params = []): \Hyperf\Collection\Collection
     {
-        return $this->perQuery($this->getQuery(), $params)->orderBy('sort')->get();
+        $query = $this->perQuery($this->getQuery(), $params);
+        $query->orderBy('sort');
+
+        return $query->get();
     }
 
     public function handleSearch(Builder $query, array $params): Builder

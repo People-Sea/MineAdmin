@@ -65,7 +65,7 @@ final class TenantSchema implements JsonSerializable
         $this->createdBy = $model->created_by;
         $this->updatedBy = $model->updated_by;
         $this->createdAt = $model->created_at;
-        $this->updatedAt = $model->updated_at?->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
+        $this->updatedAt = $model->updated_at->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
         $this->remark = $model->remark;
     }
 

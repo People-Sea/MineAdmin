@@ -21,20 +21,22 @@ final class PlatformAppRepository extends IRepository
 
     public function handleSearch(Builder $query, array $params): Builder
     {
-        return $query
-            ->when(Arr::get($params, 'name'), static function (Builder $query, $name) {
+        $query
+            ->when(Arr::get($params, 'name'), static function (Builder $query, mixed $name): void {
                 $query->where('name', 'like', '%' . $name . '%');
             })
-            ->when(Arr::get($params, 'app_id'), static function (Builder $query, $appId) {
+            ->when(Arr::get($params, 'app_id'), static function (Builder $query, mixed $appId): void {
                 $query->where('app_id', 'like', '%' . $appId . '%');
             })
-            ->when(Arr::exists($params, 'status'), static function (Builder $query) use ($params) {
+            ->when(Arr::exists($params, 'status'), static function (Builder $query) use ($params): void {
                 $query->where('status', Arr::get($params, 'status'));
             })
-            ->when(Arr::get($params, 'availability_status'), static function (Builder $query, $availabilityStatus) {
+            ->when(Arr::get($params, 'availability_status'), static function (Builder $query, mixed $availabilityStatus): void {
                 $query->where('availability_status', $availabilityStatus);
             })
             ->orderByDesc('id');
+
+        return $query;
     }
 
     public function listEnabled(): Collection

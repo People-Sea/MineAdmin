@@ -9,6 +9,9 @@ use App\Repository\IRepository;
 use Hyperf\Collection\Arr;
 use Hyperf\Database\Model\Builder;
 
+/**
+ * @extends IRepository<Role>
+ */
 final class RoleRepository extends IRepository
 {
     public function __construct(

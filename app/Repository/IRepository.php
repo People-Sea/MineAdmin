@@ -9,7 +9,7 @@ use App\Repository\Traits\RepositoryOrderByTrait;
 use Hyperf\Collection\Collection;
 use Hyperf\Contract\LengthAwarePaginatorInterface;
 use Hyperf\Database\Model\Builder;
-use Hyperf\DbConnection\Model\Model;
+use Hyperf\Database\Model\Model;
 use Hyperf\DbConnection\Traits\HasContainer;
 use Hyperf\Paginator\AbstractPaginator;
 
@@ -25,11 +25,19 @@ abstract class IRepository
 
     public const PER_PAGE_PARAM_NAME = 'per_page';
 
+    /**
+     * @param Builder<T> $query
+     * @return Builder<T>
+     */
     public function handleSearch(Builder $query, array $params): Builder
     {
         return $query;
     }
 
+    /**
+     * @param Collection<int, T> $items
+     * @return Collection<int, T>
+     */
     public function handleItems(Collection $items): Collection
     {
         return $items;
@@ -49,6 +57,9 @@ abstract class IRepository
         ];
     }
 
+    /**
+     * @return Collection<int, T>
+     */
     public function list(array $params = []): Collection
     {
         return $this->handleItems($this->perQuery($this->getQuery(), $params)->get());
@@ -74,7 +85,6 @@ abstract class IRepository
      */
     public function create(array $data): mixed
     {
-        // @phpstan-ignore-next-line
         return $this->getQuery()->create($data);
     }
 
@@ -88,6 +98,7 @@ abstract class IRepository
      */
     public function saveById(mixed $id, array $data): mixed
     {
+        /** @var null|T $model */
         $model = $this->getQuery()->whereKey($id)->first();
         if ($model) {
             $model->fill($data)->save();
@@ -112,7 +123,13 @@ abstract class IRepository
      */
     public function findById(mixed $id): mixed
     {
-        return $this->getQuery()->whereKey($id)->first();
+        /** @var null|T $model */
+        $model = $this->getQuery()->whereKey($id)->first();
+        if ($model === null) {
+            return null;
+        }
+
+        return $model;
     }
 
     public function findByField(mixed $id, string $field): mixed
@@ -125,15 +142,28 @@ abstract class IRepository
      */
     public function findByFilter(array $params): mixed
     {
-        return $this->perQuery($this->getQuery(), $params)->first();
+        /** @var null|T $model */
+        $model = $this->perQuery($this->getQuery(), $params)->first();
+        if ($model === null) {
+            return null;
+        }
+
+        return $model;
     }
 
+    /**
+     * @param Builder<T> $query
+     * @return Builder<T>
+     */
     public function perQuery(Builder $query, array $params): Builder
     {
         $this->startBoot($query, $params);
         return $this->handleSearch($query, $params);
     }
 
+    /**
+     * @return Builder<T>
+     */
     public function getQuery(): Builder
     {
         return $this->model->newQuery();

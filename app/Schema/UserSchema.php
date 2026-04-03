@@ -83,7 +83,7 @@ final class UserSchema implements JsonSerializable
         $this->username = $model->username;
         $this->userType = $model->user_type;
         $this->tenantId = $model->tenant_id;
-        $this->tenantName = $model->tenant?->name ?? null;
+        $this->tenantName = $model->tenant?->name;
         $this->lastProjectId = $model->last_project_id;
         $this->nickname = $model->nickname;
         $this->phone = $model->phone;

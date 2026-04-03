@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\Permission;
 
+use App\Exception\BusinessException;
+use App\Http\Common\ResultCode;
 use App\Model\Permission\Role;
 use App\Repository\Permission\MenuRepository;
 use App\Repository\Permission\RoleRepository;
@@ -22,19 +24,17 @@ final class RoleService extends IService
 
     public function getRolePermission(int $id): Collection
     {
-        // @phpstan-ignore-next-line
-        return $this->repository->findById($id)->menus()->get();
+        return $this->findRoleOrFail($id)->menus()->get();
     }
 
     public function batchGrantPermissionsForRole(int $id, array $permissionsCode): void
     {
+        $role = $this->findRoleOrFail($id);
         if (\count($permissionsCode) === 0) {
-            // @phpstan-ignore-next-line
-            $this->repository->findById($id)->menus()->detach();
+            $role->menus()->detach();
             return;
         }
-        // @phpstan-ignore-next-line
-        $this->repository->findById($id)
+        $role
             ->menus()
             ->sync(
                 $this->menuRepository
@@ -44,5 +44,16 @@ final class RoleService extends IService
                     ->map(static fn ($item) => $item->id)
                     ->toArray()
             );
+    }
+
+    private function findRoleOrFail(int $id): Role
+    {
+        /** @var null|Role $role */
+        $role = $this->repository->findById($id);
+        if ($role === null) {
+            throw new BusinessException(ResultCode::NOT_FOUND);
+        }
+
+        return $role;
     }
 }

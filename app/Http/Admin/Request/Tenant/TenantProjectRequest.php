@@ -32,16 +32,18 @@ final class TenantProjectRequest extends FormRequest
         $isTenantUser = $currentUser?->isTenantUser() ?? false;
         $tenantId = (int) $this->input('tenant_id');
         if ($this->isMethod('POST') && $tenantId === 0 && $isTenantUser) {
-            $tenantId = (int) ($currentUser?->tenant_id ?? 0);
+            $tenantId = (int) $currentUser->tenant_id;
         }
 
         if ($this->isMethod('PUT') && $tenantId === 0) {
             /** @var null|TenantProject $project */
             $project = TenantProject::query()->find($this->route('id'));
-            $tenantId = $project?->tenant_id ?? 0;
+            $tenantId = (int) $project?->tenant_id;
         }
 
-        $nameRule = Rule::unique('tenant_project', 'name')->where('tenant_id', $tenantId);
+        $nameRule = Rule::unique('tenant_project', 'name')->where(static function ($query) use ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        });
         if ($this->isMethod('PUT')) {
             $nameRule = $nameRule->ignore((int) $this->route('id'));
         }

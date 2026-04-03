@@ -209,6 +209,7 @@ final class User extends Model
         $this->load('position');
         $positionList = $this->position;
         foreach ($positionList as $position) {
+            /** @var null|Policy $current */
             $current = $position->policy()->first();
             if (! empty($current)) {
                 return $current;

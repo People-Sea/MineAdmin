@@ -26,7 +26,7 @@ final class TenantMemberRepository extends IRepository
         $tenantModel = (new User())->tenant()->getRelated();
         $roleModel = (new User())->roles()->getRelated();
 
-        return $query
+        $query
             ->where('user_type', Type::USER)
             ->with([
                 'tenant' => static function ($query) use ($tenantModel) {
@@ -49,35 +49,37 @@ final class TenantMemberRepository extends IRepository
                     ]);
                 },
             ])
-            ->when(Arr::get($params, 'tenant_id'), static function (Builder $query, $tenantId) {
+            ->when(Arr::get($params, 'tenant_id'), static function (Builder $query, mixed $tenantId): void {
                 $query->where('tenant_id', (int) $tenantId);
             })
-            ->when(Arr::get($params, 'name'), static function (Builder $query, $name) {
+            ->when(Arr::get($params, 'name'), static function (Builder $query, mixed $name): void {
                 $query->where('nickname', 'like', '%' . $name . '%');
             })
-            ->when(Arr::get($params, 'username'), static function (Builder $query, $username) {
+            ->when(Arr::get($params, 'username'), static function (Builder $query, mixed $username): void {
                 $query->where('username', 'like', '%' . $username . '%');
             })
-            ->when(Arr::get($params, 'email'), static function (Builder $query, $email) {
+            ->when(Arr::get($params, 'email'), static function (Builder $query, mixed $email): void {
                 $query->where('email', 'like', '%' . $email . '%');
             })
-            ->when(Arr::get($params, 'phone'), static function (Builder $query, $phone) {
+            ->when(Arr::get($params, 'phone'), static function (Builder $query, mixed $phone): void {
                 $query->where('phone', 'like', '%' . $phone . '%');
             })
-            ->when(Arr::get($params, 'role'), static function (Builder $query, $role) {
-                $query->whereHas('roles', static function (Builder $query) use ($role) {
+            ->when(Arr::get($params, 'role'), static function (Builder $query, mixed $role): void {
+                $query->whereHas('roles', static function (Builder $query) use ($role): void {
                     $query->where('code', $role);
                 });
             })
-            ->when(Arr::exists($params, 'status'), static function (Builder $query) use ($params) {
+            ->when(Arr::exists($params, 'status'), static function (Builder $query) use ($params): void {
                 $query->where('status', Arr::get($params, 'status'));
             })
-            ->when(Arr::get($params, 'project_id'), static function (Builder $query, $projectId) {
-                $query->whereHas('projects', static function (Builder $query) use ($projectId) {
+            ->when(Arr::get($params, 'project_id'), static function (Builder $query, mixed $projectId): void {
+                $query->whereHas('projects', static function (Builder $query) use ($projectId): void {
                     $query->whereKey((int) $projectId);
                 });
             })
             ->orderByDesc('id');
+
+        return $query;
     }
 
     public function handleItems(Collection $items): Collection
@@ -92,14 +94,14 @@ final class TenantMemberRepository extends IRepository
             $roleEntity = ($item->roles ?? collect())
                 ->first(static fn ($role) => \in_array($role->code, $assignableRoleCodes, true));
 
-            $item->setAttribute('tenant_name', $item->tenant?->name ?? '');
+            $item->setAttribute('tenant_name', (string) $item->tenant?->name);
             $item->setAttribute('name', $item->nickname);
             $item->setAttribute('project_ids', $projects->pluck('id')->values()->all());
             $item->setAttribute('project_names', $projects->pluck('name')->values()->all());
             $item->setAttribute('project_count', $projects->count());
             $item->setAttribute('role_id', $roleEntity?->id);
-            $item->setAttribute('role', $roleEntity?->code ?? '');
-            $item->setAttribute('role_label', $roleEntity?->name ?? '');
+            $item->setAttribute('role', (string) $roleEntity?->code);
+            $item->setAttribute('role_label', (string) $roleEntity?->name);
 
             return $item;
         });

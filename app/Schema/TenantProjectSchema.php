@@ -57,7 +57,7 @@ final class TenantProjectSchema implements JsonSerializable
         $this->memberIds = (array) ($model->member_ids ?? []);
         $this->memberNames = (array) ($model->member_names ?? []);
         $this->memberCount = (int) ($model->member_count ?? 0);
-        $this->updatedAt = $model->updated_at?->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
+        $this->updatedAt = $model->updated_at->format(CarbonInterface::DEFAULT_TO_STRING_FORMAT);
         $this->remark = $model->remark;
     }
 

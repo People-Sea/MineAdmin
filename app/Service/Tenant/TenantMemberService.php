@@ -15,7 +15,6 @@ use App\Repository\Tenant\TenantMemberRepository;
 use App\Service\IService;
 use App\Service\Permission\UserService;
 use Hyperf\Collection\Collection;
-use Hyperf\Collection\Enumerable;
 use Hyperf\DbConnection\Db;
 
 /**
@@ -34,20 +33,11 @@ final class TenantMemberService extends IService
         return parent::page($this->applyScope($params), $page, $pageSize);
     }
 
-    public function options(array $params = []): Enumerable
+    public function options(array $params = []): Collection
     {
-        return $this->repository->list($this->applyScope($params))->map(static function (User $member) {
-            return [
-                'id' => $member->id,
-                'tenant_id' => $member->tenant_id,
-                'name' => $member->nickname,
-                'username' => $member->username,
-                'role_id' => $member->role_id,
-                'role' => $member->role,
-                'role_label' => $member->role_label,
-                'status' => $member->status,
-            ];
-        });
+        return $this->repository
+            ->list($this->applyScope($params))
+            ->map(fn (User $member) => $this->mapOption($member));
     }
 
     public function roleOptions(): Collection
@@ -290,6 +280,32 @@ final class TenantMemberService extends IService
     private function tenantAdminRoleCode(): string
     {
         return (string) config('tenant.admin_role_code', 'TenantAdmin');
+    }
+
+    /**
+     * @return array{
+     *     id:int,
+     *     tenant_id:null|int,
+     *     name:string,
+     *     username:string,
+     *     role_id:null|int,
+     *     role:string,
+     *     role_label:string,
+     *     status:int
+     * }
+     */
+    private function mapOption(User $member): array
+    {
+        return [
+            'id' => $member->id,
+            'tenant_id' => $member->tenant_id,
+            'name' => $member->nickname,
+            'username' => $member->username,
+            'role_id' => isset($member->role_id) ? (int) $member->role_id : null,
+            'role' => (string) ($member->role ?? ''),
+            'role_label' => (string) ($member->role_label ?? ''),
+            'status' => $member->status->value,
+        ];
     }
 
     private function syncProjects(User $member, ?array $projectIds, int $operatorId): void

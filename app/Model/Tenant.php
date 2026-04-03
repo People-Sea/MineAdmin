@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Model\Enums\User\Type;
 use App\Model\Permission\User;
 use Carbon\Carbon;
 use Hyperf\Database\Model\Relations\HasMany;
@@ -51,7 +52,10 @@ class Tenant extends Model
 
     public function members(): HasMany
     {
-        return $this->hasMany(User::class, 'tenant_id', 'id')->where('user_type', 200);
+        $relation = $this->hasMany(User::class, 'tenant_id', 'id');
+        $relation->getQuery()->where('user_type', Type::USER);
+
+        return $relation;
     }
 
     public function projects(): HasMany
