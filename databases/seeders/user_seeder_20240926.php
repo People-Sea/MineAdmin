@@ -12,10 +12,24 @@ class UserSeeder20240926 extends Seeder
      */
     public function run()
     {
-        User::truncate();
-        Role::truncate();
-        $entity = User::create([
-            'username' => 'admin',
+        $now = date('Y-m-d H:i:s');
+
+        /** @var Role $role */
+        $role = Role::query()->firstOrCreate(
+            ['code' => 'SuperAdmin'],
+            [
+                'name' => '超级管理员',
+                'status' => 1,
+                'sort' => 0,
+                'created_by' => 0,
+                'updated_by' => 0,
+                'remark' => '超级管理员',
+            ]
+        );
+
+        /** @var User $entity */
+        $entity = User::query()->firstOrNew(['username' => 'admin']);
+        $entity->fill([
             'user_type' => '100',
             'nickname' => '创始人',
             'email' => 'admin@adminmine.com',
@@ -24,13 +38,12 @@ class UserSeeder20240926 extends Seeder
             'created_by' => 0,
             'updated_by' => 0,
             'status' => 1,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'created_at' => $entity->exists ? $entity->created_at : $now,
+            'updated_at' => $now,
         ]);
-        $role = Role::create([
-            'name' => '超级管理员',
-            'code' => 'SuperAdmin',
-        ]);
-        $entity->roles()->sync($role);
+        $entity->password = 123456;
+        $entity->save();
+
+        $entity->roles()->sync([$role->id]);
     }
 }

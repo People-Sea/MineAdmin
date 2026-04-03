@@ -1,8 +1,14 @@
 <?php
 
-return (new PhpCsFixer\Config())
+declare(strict_types=1);
+
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfig;
+
+return (new Config())
     ->setRiskyAllowed(true)
-    ->setParallelConfig(new PhpCsFixer\Runner\Parallel\ParallelConfig(8, 24))
+    ->setParallelConfig(new ParallelConfig(8, 24))
     ->setRules([
         '@PSR2' => true,
         '@PhpCsFixer:risky' => true,
@@ -19,13 +25,13 @@ return (new PhpCsFixer\Config())
             'separate' => 'none',
         ],
         'array_syntax' => [
-            'syntax' => 'short'
+            'syntax' => 'short',
         ],
         'list_syntax' => [
-            'syntax' => 'short'
+            'syntax' => 'short',
         ],
         'concat_space' => [
-            'spacing' => 'one'
+            'spacing' => 'one',
         ],
         'blank_line_before_statement' => [
             'statements' => [
@@ -34,7 +40,7 @@ return (new PhpCsFixer\Config())
         ],
         'general_phpdoc_annotation_remove' => [
             'annotations' => [
-                'author'
+                'author',
             ],
         ],
         'ordered_imports' => [
@@ -79,12 +85,12 @@ return (new PhpCsFixer\Config())
         'mb_str_functions' => true,
         'set_type_to_cast' => true,
         'no_multiline_whitespace_around_double_arrow' => true,
-        'normalize_index_brace'    => true,
-        'return_to_yield_from'  =>  true,
+        'normalize_index_brace' => true,
+        'return_to_yield_from' => true,
         'class_keyword' => true,
     ])
     ->setFinder(
-        PhpCsFixer\Finder::create()
+        Finder::create()
             ->exclude('vendor')
             ->exclude('bin')
             ->exclude('runtime')
